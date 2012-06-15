@@ -121,18 +121,18 @@ public class ApexSequenceUtil {
 		}	
 	}
 	
-	public static List apexGetParentCombinedFragmentList(CombinedFragmentEditPart cfep) {
-		return apexGetParentCombinedFragmentList(cfep, new ArrayList());
+	public static List<CombinedFragmentEditPart> apexGetParentCombinedFragmentEditPartList(CombinedFragmentEditPart cfep) {
+		return apexGetParentCombinedFragmentEditPartList(cfep, new ArrayList());
 	}
 
-	public static List apexGetParentCombinedFragmentList(CombinedFragmentEditPart cfep, List parentCombinedFragmentEditParts) {
+	public static List<CombinedFragmentEditPart> apexGetParentCombinedFragmentEditPartList(CombinedFragmentEditPart cfep, List parentCombinedFragmentEditParts) {
 				
 		EditPart opParent = cfep.getParent();
 
 		if ( opParent instanceof InteractionOperandEditPart ) {
 			CombinedFragmentEditPart parentCombinedFragmentEditPart = (CombinedFragmentEditPart)opParent.getParent().getParent(); 
 			parentCombinedFragmentEditParts.add(parentCombinedFragmentEditPart);
-			apexGetParentCombinedFragmentList(parentCombinedFragmentEditPart, parentCombinedFragmentEditParts);			
+			apexGetParentCombinedFragmentEditPartList(parentCombinedFragmentEditPart, parentCombinedFragmentEditParts);			
 		}
 		return parentCombinedFragmentEditParts;
 	}

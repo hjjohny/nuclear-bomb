@@ -18,6 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.draw2d.IFigure;
+import org.eclipse.draw2d.PositionConstants;
 import org.eclipse.draw2d.Shape;
 import org.eclipse.draw2d.StackLayout;
 import org.eclipse.emf.common.notify.Notification;
@@ -51,6 +52,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.papyrus.diagram.common.editpolicies.ShowHideCompartmentEditPolicy;
 import org.eclipse.papyrus.diagram.common.helper.PreferenceInitializerForElementHelper;
+import org.eclipse.papyrus.diagram.sequence.edit.policies.ApexResizableShapeEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.CombinedFragmentItemComponentEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.CombinedFragmentItemSemanticEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.SequenceGraphicalNodeEditPolicy;
@@ -154,6 +156,18 @@ public class CombinedFragmentEditPart extends InteractionFragmentEditPart {
 			}
 		};
 		return lep;
+	}
+	
+	/**
+	 * apex updated
+	 * 
+	 * @Override
+	 */
+	public EditPolicy getPrimaryDragEditPolicy() {
+		/* apex added start */
+		EditPolicy result = getEditPolicy(EditPolicy.PRIMARY_DRAG_ROLE);
+		return result != null ? result : new ApexResizableShapeEditPolicy(PositionConstants.NORTH_SOUTH);
+		/* apex added end */ 
 	}
 
 	/**
