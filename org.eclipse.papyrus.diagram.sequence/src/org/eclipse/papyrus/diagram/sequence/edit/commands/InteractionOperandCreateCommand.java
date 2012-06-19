@@ -150,7 +150,13 @@ public class InteractionOperandCreateCommand extends EditElementCommand {
 
 		// Add all combined fragment's covered lifelines on interaction operand
 		for(InteractionOperand operand : cf.getOperands()) {
+/*8
+System.out.println("/////// in InteractionOperandCreateCommand.createInteractionOperand(), cf.getCovereds() : " + cf.getCovereds());
+*/
 			operand.getCovereds().addAll(cf.getCovereds());
+/*8
+System.out.println("/////// in InteractionOperandCreateCommand.createInteractionOperand(), after addAll, op.getCovereds() : " + operand.getCovereds());
+*/
 		}
 
 		// create guard

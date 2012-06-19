@@ -454,51 +454,58 @@ System.out.println("??? in omw right after LifelineEditPart target after Connect
 					}
 				}
 			}
-
-			/* apex added start */
-			// BeneathEditPart가 있는 경우 함께 이동 처리
-			// belowEditPartList  
-			List belowEditPartList = ApexSequenceUtil.apexGetBelowEditPartList(combinedFragmentEditPart);
 			
-			// BeneathEditPart가 있는 경우
-			if ( belowEditPartList.size() > 0 ) {
+			/* apex added start */			
+			if ( moveDelta.y > 0 ) { // 아래로 이동 시 BelowEditParts가 있는 경우 함께 이동 처리
 				
-/*8
-System.out.println("***************** in getCombined~~ *****************");
-System.out.println("**** Below List Start ****");
-
-Iterator tmpIter = belowEditPartList.iterator();
-int inx = 0;
-while(tmpIter.hasNext()) {
-	EditPart ep = (EditPart)tmpIter.next();
-	System.out.println("["+inx++ +"]"+ep.getClass().getSimpleName());
-}
-System.out.println("**** Below List END ****");
-*/			
-				int yAfterMove = cfFigure.getBounds().getBottom().y+moveDelta.y;
-				AbstractGraphicalEditPart beneathEditPart  = ApexSequenceUtil.apexGetBeneathEditPart(combinedFragmentEditPart, belowEditPartList);
-			
-				// beneathEditPart 보다 아래로 내릴 경우
-				if (yAfterMove >= beneathEditPart.getFigure().getBounds().getTop().y) {
-					CompoundCommand belowProcessedCmd = (CompoundCommand)apexGetResizeOrMoveBelowItemsCommand(request, combinedFragmentEditPart);
+				List belowEditPartList = ApexSequenceUtil.apexGetBelowEditPartList(combinedFragmentEditPart);
 				
-					// 반환 받은 CompoundCmd를 분해하여 compoundCmd에 추가
-					List belowProcessedCmdList = belowProcessedCmd.getCommands();
-					Iterator it = belowProcessedCmdList.iterator();
-					while(it.hasNext()) {
-						Command moveCommand = (Command)it.next();
-						if(moveCommand != null && !moveCommand.canExecute()) {
-							// forbid move if the es can't be moved correctly
-							return UnexecutableCommand.INSTANCE;
-						} else if(moveCommand != null) {
-							compoundCmd.add(moveCommand);
+				// BelowEditParts가 있는 경우
+				if ( belowEditPartList.size() > 0 ) {					
+	
+					int yAfterMove = cfFigure.getBounds().getBottom().y+moveDelta.y;
+					AbstractGraphicalEditPart beneathEditPart  = ApexSequenceUtil.apexGetBeneathEditPart(combinedFragmentEditPart, belowEditPartList);
+				
+					// beneathEditPart 보다 아래로 내릴 경우
+					if (yAfterMove >= beneathEditPart.getFigure().getBounds().getTop().y) {
+						
+						// belowEditPart를 모두 아래로 이동
+						CompoundCommand belowProcessedCmd = (CompoundCommand)apexGetResizeOrMoveBelowItemsCommand(request, combinedFragmentEditPart);
+					
+						// 반환 받은 CompoundCmd를 분해하여 compoundCmd에 추가
+						List belowProcessedCmdList = belowProcessedCmd.getCommands();
+						Iterator it = belowProcessedCmdList.iterator();
+						while(it.hasNext()) {
+							Command moveCommand = (Command)it.next();
+							if(moveCommand != null && !moveCommand.canExecute()) {
+								// forbid move if the es can't be moved correctly
+								return UnexecutableCommand.INSTANCE;
+							} else if(moveCommand != null) {
+								compoundCmd.add(moveCommand);
+							}
 						}
+					}	
+				}
+
+			} else if ( moveDelta.y < 0 ) { // 위로 이동할 경우
+				
+				List higherEditPartList = ApexSequenceUtil.apexGetHigherEditPartList(combinedFragmentEditPart);
+				
+				if ( higherEditPartList.size() > 0 ) {
+				
+					int yAfterMove = cfFigure.getBounds().getTop().y+moveDelta.y;
+					AbstractGraphicalEditPart aboveEditPart  = ApexSequenceUtil.apexGetAboveEditPart(combinedFragmentEditPart, higherEditPartList);
+					
+					// aboveEditPart보다 위로 올릴 경우
+					if ( yAfterMove < aboveEditPart.getFigure().getBounds().getBottom().y ) {
+						// 못 옮기게 함
+						return UnexecutableCommand.INSTANCE;
 					}
-				}	
+					
+				}
+
 			}
 			/* apex added end */
-
-			
 			
 // 이동 끝
 		} else {
@@ -525,19 +532,30 @@ System.out.println("**** Below List END ****");
 				Set<InteractionFragment> notCoveredAnymoreInteractionFragments = new HashSet<InteractionFragment>();
 				int headerHeight = 0;
 
+				// InteractionOperands 에 대해
 				for(EditPart ep : combinedFragmentChildrenEditParts) {
 					if(ep instanceof InteractionOperandEditPart) {
 						InteractionOperandEditPart ioEP = (InteractionOperandEditPart)ep;
 						InteractionOperand io = (InteractionOperand)ioEP.resolveSemanticElement();
 
+						// 이 InteractionOperand가 넘겨받은 CF의 Operands에 포함되는 경우
 						if(cf.getOperands().contains(io)) {
+							// interactionOperandEditParts에 이 InteractonOperandEditPart를 add하고
 							interactionOperandEditParts.add(ioEP);
+							
+							// 이 Operand의 모든 Fragments를 notCovered List에 추가
 							// fill with all current fragments (filter later)
 							notCoveredAnymoreInteractionFragments.addAll(io.getFragments());
 
+							// 이 Operand가 첫번째 Operand이면
 							if(firstOperand.equals(io)) {
+								
 								Rectangle boundsIO = ioEP.getFigure().getBounds().getCopy();
+								
+								// 이 Operand의 좌표를 절대좌표로 변환
 								ioEP.getFigure().getParent().translateToAbsolute(boundsIO);
+								
+								// 넘겨받은 CF와 이 Operand의 y차이만큼이 header Height
 								headerHeight = boundsIO.y - origCFBounds.y;
 							}
 						}
@@ -550,36 +568,44 @@ System.out.println("**** Below List END ****");
 				for(InteractionOperandEditPart ioEP : interactionOperandEditParts) {
 					InteractionOperand io = (InteractionOperand)ioEP.resolveSemanticElement();
 
+					// 이 IO의 절대좌표
 					Rectangle newBoundsIO = SequenceUtil.getAbsoluteBounds(ioEP);
 
+					// moveDelta만큼 이동
 					// apply the move delta which will impact all operands
 					newBoundsIO.translate(moveDelta);
 
+					// 실제 경계 변경 처리
 					// calculate the new bounds of the interaction operand
 					// scale according to the ratio
 					newBoundsIO.height = (int)(newBoundsIO.height * heightRatio);
 					newBoundsIO.width = (int)(newBoundsIO.width * widthRatio);
 
+					// 첫번째 Operand의 경우 Header영역도 Operand에 포함(io의 y값은 감소시키고, 그만큼 height는 확장)
 					if(firstOperand.equals(io)) {
 						// used to compensate the height of the "header" where the OperandKind is stored
 						newBoundsIO.y -= headerHeight;
 						newBoundsIO.height += headerHeight;
 					}
 
+					// 넘겨받은 CF와 그 Operands를 ignoreSet에 추가(새 경계에 새로 포함되는 fragment만 나중에 추출하기 위해 기존 Fragment는 ignoreSet에 추가)
 					// ignore current CF and enclosed IO
 					Set<InteractionFragment> ignoreSet = new HashSet<InteractionFragment>();
 					ignoreSet.add(cf);
 					ignoreSet.addAll(cf.getOperands());
 
+					// 새 경계에 포함되는 Fragments 추출
 					Set<InteractionFragment> coveredInteractionFragments = SequenceUtil.getCoveredInteractionFragments(newBoundsIO, combinedFragmentEditPart, ignoreSet);
 
 					if(coveredInteractionFragments == null) {
 						return UnexecutableCommand.INSTANCE;
 					}
 
+					// notCovered에서 새 경계에 포함되는 Fragments는 제외, 즉 기존 경계에 포함되었던 Fragment를 notCovered에서 제외, 즉 covered로 처리
 					// remove fragments that are covered by this operand from the notCovered set
 					notCoveredAnymoreInteractionFragments.removeAll(coveredInteractionFragments);
 
+					// 새 경계에 포함되는 Fragments의 EnclosingInteraction으로 io를 setting
 					// set the enclosing operand to the moved/resized one if the current enclosing interaction is the enclosing interaction
 					// of the moved/resized operand or of another.
 					// => the interaction fragment that are inside an other container (like an enclosed CF) are not modified
@@ -588,13 +614,20 @@ System.out.println("**** Below List END ****");
 							Interaction interactionOwner = ift.getEnclosingInteraction();
 							InteractionOperand ioOwner = ift.getEnclosingOperand();
 
-							if((ioOwner != null && (ioOwner.equals(cf.getEnclosingOperand()) || cf.equals(ioOwner.getOwner()))) || (interactionOwner != null && (interactionOwner.equals(cf.getEnclosingInteraction()) || cf.equals(interactionOwner.getOwner())))) {
+							// 포함하는 op가 null이 아니고 (포함하는 op가 cf를 포함하는 op와 같거나-이럴경우가 있나? cf가 포함하는 op의 owner인 경우)
+							// 또는
+							// 포함하는 interaction이 null이 아니고 (포함하는 interaction이 cf를 포함하는 interaction과 같거나 cf가 포함하는 interaction의 owner인 경우-이럴경우가 있나?)
+							if((ioOwner != null && (ioOwner.equals(cf.getEnclosingOperand()) || cf.equals(ioOwner.getOwner())))
+									|| (interactionOwner != null && (interactionOwner.equals(cf.getEnclosingInteraction()) || cf.equals(interactionOwner.getOwner())))
+							  ) {
+								// io를 ift를 포함하는 interaction으로 set해주는 command를 compoundCmd에 추가
 								compoundCmd.add(new ICommandProxy(SequenceUtil.getSetEnclosingInteractionCommand(ioEP.getEditingDomain(), ift, io)));
 							}
 						}
 					}
 				}
 
+				// notCovered에 포함된 ift는 원래 포함하는 operand나 interaction을 EnclosingInteraction으로 setting
 				for(InteractionFragment ift : notCoveredAnymoreInteractionFragments) {
 					if(cf.getEnclosingOperand() != null) {
 						compoundCmd.add(new ICommandProxy(SequenceUtil.getSetEnclosingInteractionCommand(combinedFragmentEditPart.getEditingDomain(), ift, cf.getEnclosingOperand())));
@@ -608,20 +641,7 @@ System.out.println("**** Below List END ****");
 			
 			/* apex added start */
 			// 여기에 중첩된 경우 Resize 처리
-			Command resizeParentCompoundCommand = apexResizeParentCombinedFragments(request, combinedFragmentEditPart, compoundCmd);
-			// 반환 받은 CompoundCmd를 분해하여 compoundCmd에 추가
-			List resizeParentCFCommand = ((CompoundCommand)resizeParentCompoundCommand).getCommands();
-			
-			Iterator it = resizeParentCFCommand.iterator();
-			while(it.hasNext()) {
-				Command resizeParentCommand = (Command)it.next();
-				if(resizeParentCommand != null && !resizeParentCommand.canExecute()) {
-					// forbid move if the es can't be moved correctly
-					return UnexecutableCommand.INSTANCE;
-				} else if(resizeParentCommand != null) {
-					compoundCmd.add(resizeParentCommand);
-				}
-			}
+			apexResizeParentCombinedFragments(request, combinedFragmentEditPart, compoundCmd);			
 			/* apex added end */
 
 			
@@ -661,29 +681,27 @@ System.out.println("**** Below List END ****");
 	public static Command apexResizeParentCombinedFragments(ChangeBoundsRequest request, CombinedFragmentEditPart combinedFragmentEditPart, CompoundCommand ccmd) {
 		// 여기에 중첩된 경우 Resize 처리
 		// newBounds.width 가 어느값이상으로 증가하지 않음(parentOp의 width와 관련 있음)
-		Point moveDelta = request.getMoveDelta();
-		Dimension sizeDelta = request.getSizeDelta();
-		
-		IFigure cfFigure = combinedFragmentEditPart.getFigure();
-		Rectangle origCFBounds = cfFigure.getBounds().getCopy();
-
-		// origCFBounds 를 화면 좌상단을 원점으로 하는 절대좌표값으로 변경
-		cfFigure.getParent().translateToAbsolute(origCFBounds);
-
-		// origCFBounds 를 cfFigure.getParent()의 좌상단 절대좌표값만큼 더하여 변경, 즉 parent의 변경만큼 origCFBounds도 변경 
-		origCFBounds.translate(cfFigure.getParent().getBounds().getLocation());	
-
-		// Resize된 CF의 새 Bounds
-		Rectangle newBoundsCF = origCFBounds.getCopy();
-		newBoundsCF.translate(moveDelta);
-		newBoundsCF.resize(sizeDelta);
-		
-
 
 		// parentOperand가 있고
 		EditPart ep = combinedFragmentEditPart.getParent();
 		if ( ep instanceof InteractionOperandEditPart ) {
+			Point moveDelta = request.getMoveDelta();
+			Dimension sizeDelta = request.getSizeDelta();
+			
+			IFigure cfFigure = combinedFragmentEditPart.getFigure();
+			Rectangle origCFBounds = cfFigure.getBounds().getCopy();
 
+			// origCFBounds 를 화면 좌상단을 원점으로 하는 절대좌표값으로 변경
+			cfFigure.getParent().translateToAbsolute(origCFBounds);
+
+			// origCFBounds 를 cfFigure.getParent()의 좌상단 절대좌표값만큼 더하여 변경, 즉 parent의 변경만큼 origCFBounds도 변경 
+			origCFBounds.translate(cfFigure.getParent().getBounds().getLocation());	
+
+			// Resize된 CF의 새 Bounds
+			Rectangle newBoundsCF = origCFBounds.getCopy();
+			newBoundsCF.translate(moveDelta);
+			newBoundsCF.resize(sizeDelta);
+			
 			// this CFEP를 포함하는 CFEP List(a) 구성
 			List<CombinedFragmentEditPart> parentCfEditParts = ApexSequenceUtil.apexGetParentCombinedFragmentEditPartList(combinedFragmentEditPart);
 			
@@ -692,6 +710,7 @@ System.out.println("**** Below List END ****");
 				InteractionOperandEditPart ioep = (InteractionOperandEditPart)ep;
 				Rectangle parentOperandBounds = ioep.getFigure().getBounds().getCopy();
 				aCf.getFigure().translateToAbsolute(parentOperandBounds);
+
 System.out.println("---------------------------------");			
 System.out.println("origCFBounds                 : " + origCFBounds);
 System.out.println("sizeDelta.width              : " + sizeDelta.width);
@@ -708,7 +727,6 @@ System.out.println("parentOperandBounds.bottom() : " + parentOperandBounds.botto
 				if ( newBoundsCF.right() > parentOperandBounds.right() ||
 				     newBoundsCF.bottom() > parentOperandBounds.bottom() ) {
 System.out.println("newBounds is bigger than parentOperand");
-
 					apexGetCombinedFragmentResizeChildrenCommand(request, aCf, ccmd);
 				} else {
 					return ccmd;
@@ -734,11 +752,13 @@ System.out.println("newBounds is bigger than parentOperand");
 	 * @return
 	 */
 	public static Command apexGetCombinedFragmentResizeChildrenCommand(ChangeBoundsRequest request, CombinedFragmentEditPart combinedFragmentEditPart, CompoundCommand ccmd) {
-
+/*8
 System.out.println("*****************************");
 System.out.println("재귀호출");
+*/
 		Command cpCmd = getCombinedFragmentResizeChildrenCommand(request, combinedFragmentEditPart);
 		
+		// cpCmd를 분해하여 넘겨받은 원래의 ccmd 에 add
 		if ( cpCmd.equals(UnexecutableCommand.INSTANCE)) {
 			return UnexecutableCommand.INSTANCE;
 		} else if ( cpCmd instanceof CompoundCommand ) {			
@@ -753,7 +773,9 @@ System.out.println("재귀호출");
 				}
 			}	
 		} else {
+/*8
 System.out.println("return of getCFResizeChildrenCommand is " + cpCmd);
+*/
 		}
 		return ccmd;
 	}
