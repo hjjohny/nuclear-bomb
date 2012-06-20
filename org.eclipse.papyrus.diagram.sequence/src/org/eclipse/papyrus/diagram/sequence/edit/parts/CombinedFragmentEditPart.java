@@ -1263,7 +1263,7 @@ System.out.println("*********** after add/remove");
 ApexSequenceUtil.apexShowChildrenEditPart(this);
 */
 		} else if(notification.getNotifier() instanceof Bounds) {
-ApexSequenceUtil.apexShowChildrenEditPart(this.getRoot());
+
 			updateCoveredLifelines((Bounds)notification.getNotifier());
 		}
 

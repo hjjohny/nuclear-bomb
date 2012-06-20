@@ -132,18 +132,19 @@ System.out.println("+++++ below List End+++++");
 			
 			EditPart o = (EditPart)it.next();
 			
-			System.out.println(sb.toString() + o.getClass().getSimpleName());
-			
-			// children 있으면 depth 증가 후 재귀호출
-			if ( o.getChildren().size() > 0 ) {
-				apexShowChildrenEditPart(o, depth+2);	
-			}
+			System.out.println(sb.toString() + o/*.getClass().getSimpleName()*/);
 			// interactionOperand의 경우 포함되는 fragment를 출력
 			if ( o instanceof InteractionOperandEditPart ) {
 				InteractionOperand io = (InteractionOperand)((InteractionOperandEditPart)o).resolveSemanticElement();
 				System.out.println(sb.toString() + "  " + "lifelines : " + io.getCovereds());
 				System.out.println(sb.toString() + "  " + "fragments : " + io.getFragments());	
 			}
+			
+			// children 있으면 depth 증가 후 재귀호출
+			if ( o.getChildren().size() > 0 ) {
+				apexShowChildrenEditPart(o, depth+2);	
+			}
+
 		}	
 	}
 	

@@ -279,8 +279,7 @@ System.out.println("### in omw below list end ###");
 					}
 
 					// handle move of messages directly attached to a lifeline
-					// 보통 메세지가 아니라 Lifeline에 직접붙은 메세지
-					// 즉, async 등의 경우
+					// 보통 메세지가 아니라 Lifeline에 직접붙은 메세지. 즉, async 등의 경우
 					// sync의 경우 아래의 로직에 의해 이동되는게 아니라
 					// 딸린 ExecSpec이 위의 로직에 의해 이동되기 때문에 따라 이동
 					
@@ -368,10 +367,35 @@ System.out.println("??? in omw right after LifelineEditPart target after Connect
 	 */
 	@SuppressWarnings("unchecked")
 	public static Command getCombinedFragmentResizeChildrenCommand(ChangeBoundsRequest request, CombinedFragmentEditPart combinedFragmentEditPart) {
+		return getCombinedFragmentResizeChildrenCommand(request, combinedFragmentEditPart, 0);
+	}
+	
+	
+	/**
+	 * apex updated
+	 * 
+	 * Handle the owning of interaction fragments when moving or resizing a CF.
+	 * 
+	 * @param compoundCmd
+	 *        The command
+	 * @param moveDelta
+	 *        The move delta (given by the request).
+	 * @param sizeDelta
+	 *        The size delta (given by the request).
+	 * @param combinedFragmentEditPart
+	 *        The CF edit part.
+	 */
+	@SuppressWarnings("unchecked")
+	public static Command getCombinedFragmentResizeChildrenCommand(ChangeBoundsRequest request, CombinedFragmentEditPart combinedFragmentEditPart, int depth) {
 		
 		Point moveDelta = request.getMoveDelta();
 
 		Dimension sizeDelta = request.getSizeDelta();
+		
+		/* apex added start */
+		List<EditPart> editParts = request.getEditParts();
+
+		/* apex added end */
 
 		IFigure cfFigure = combinedFragmentEditPart.getFigure();
 		Rectangle origCFBounds = cfFigure.getBounds().getCopy();
@@ -514,11 +538,10 @@ System.out.println("??? in omw right after LifelineEditPart target after Connect
 			Rectangle newBoundsCF = origCFBounds.getCopy();
 			newBoundsCF.translate(moveDelta);
 			newBoundsCF.resize(sizeDelta);
-
-			CombinedFragment cf = (CombinedFragment)((CombinedFragmentEditPart)combinedFragmentEditPart).resolveSemanticElement();
-
 			
-			// 아래 기존 로직은 InteractionOperand resize 처리
+			CombinedFragment cf = (CombinedFragment)((CombinedFragmentEditPart)combinedFragmentEditPart).resolveSemanticElement();
+			
+			// 아래 기존 로직은 CF의 child인 InteractionOperand resize 처리
 			if(combinedFragmentEditPart.getChildren().size() > 0 && combinedFragmentEditPart.getChildren().get(0) instanceof CombinedFragmentCombinedFragmentCompartmentEditPart) {
 
 				CombinedFragmentCombinedFragmentCompartmentEditPart compartment = (CombinedFragmentCombinedFragmentCompartmentEditPart)combinedFragmentEditPart.getChildren().get(0);
@@ -637,14 +660,10 @@ System.out.println("??? in omw right after LifelineEditPart target after Connect
 				}
 			}
 			
-			
-			
 			/* apex added start */
 			// 여기에 중첩된 경우 Resize 처리
-			apexResizeParentCombinedFragments(request, combinedFragmentEditPart, compoundCmd);			
+			apexResizeParentCombinedFragments(request, combinedFragmentEditPart, compoundCmd, depth);			
 			/* apex added end */
-
-			
 // Resize 끝
 		}
 
@@ -678,13 +697,17 @@ System.out.println("??? in omw right after LifelineEditPart target after Connect
 		return compoundCmd;
 	}
 	
-	public static Command apexResizeParentCombinedFragments(ChangeBoundsRequest request, CombinedFragmentEditPart combinedFragmentEditPart, CompoundCommand ccmd) {
+	
+	public static Command apexResizeParentCombinedFragments(ChangeBoundsRequest request, CombinedFragmentEditPart combinedFragmentEditPart, CompoundCommand ccmd, int depth) {
 		// 여기에 중첩된 경우 Resize 처리
 		// newBounds.width 가 어느값이상으로 증가하지 않음(parentOp의 width와 관련 있음)
 
 		// parentOperand가 있고
 		EditPart ep = combinedFragmentEditPart.getParent();
 		if ( ep instanceof InteractionOperandEditPart ) {
+			
+			CombinedFragmentEditPart parentCFep = (CombinedFragmentEditPart)ep.getParent().getParent();
+			
 			Point moveDelta = request.getMoveDelta();
 			Dimension sizeDelta = request.getSizeDelta();
 			
@@ -702,36 +725,70 @@ System.out.println("??? in omw right after LifelineEditPart target after Connect
 			newBoundsCF.translate(moveDelta);
 			newBoundsCF.resize(sizeDelta);
 			
-			// this CFEP를 포함하는 CFEP List(a) 구성
-			List<CombinedFragmentEditPart> parentCfEditParts = ApexSequenceUtil.apexGetParentCombinedFragmentEditPartList(combinedFragmentEditPart);
+			// ParentCFEP List(a) 구성
+			//List<CombinedFragmentEditPart> parentCfEditParts = ApexSequenceUtil.apexGetParentCombinedFragmentEditPartList(combinedFragmentEditPart);
 			
-			for (CombinedFragmentEditPart aCf : parentCfEditParts) {
 
-				InteractionOperandEditPart ioep = (InteractionOperandEditPart)ep;
-				Rectangle parentOperandBounds = ioep.getFigure().getBounds().getCopy();
-				aCf.getFigure().translateToAbsolute(parentOperandBounds);
 
-System.out.println("---------------------------------");			
-System.out.println("origCFBounds                 : " + origCFBounds);
+			InteractionOperandEditPart ioep = (InteractionOperandEditPart)ep;
+			Rectangle parentOperandBounds = ioep.getFigure().getBounds().getCopy();
+			parentCFep.getFigure().translateToAbsolute(parentOperandBounds);
+
+System.out.println("---------------------------------");		
+System.out.println("depth                        : " + depth);
+System.out.println("this CF                      : " + combinedFragmentEditPart);
+System.out.println("origCFBounds                 : " + origCFBounds + ", right = " + origCFBounds.right() + ", bottom = " + origCFBounds.bottom());
 System.out.println("sizeDelta.width              : " + sizeDelta.width);
 System.out.println("resizedCFBounds              : " + newBoundsCF);
-System.out.println("parentOperandBounds          : " + parentOperandBounds);
+System.out.println("parentOperandBounds          : " + parentOperandBounds + ", right = " + parentOperandBounds.right() + ", bottom = " + parentOperandBounds.bottom());
 System.out.println("newBounds.right()            : " + newBoundsCF.right());
 System.out.println("parentOperandBounds.right()  : " + parentOperandBounds.right());
 System.out.println("newBounds.bottom()           : " + newBoundsCF.bottom());
 System.out.println("parentOperandBounds.bottom() : " + parentOperandBounds.bottom());
+System.out.println("parent CF                    : " + parentCFep);
+			
+		
+			// Resize결과 parentOperand보다 크면 parentCF도 Resize 처리
+				if ( newBoundsCF.right() > parentOperandBounds.right() ||
+				     newBoundsCF.bottom() > parentOperandBounds.bottom() ) {
+System.out.println("newBounds is bigger than parentOperand");
+				apexGetCombinedFragmentResizeChildrenCommand(request, parentCFep, ccmd, depth);
+			} else {
+				return ccmd;
+			}
 
+
+			/*
+			for (CombinedFragmentEditPart aParentCfep : parentCfEditParts) {
+
+				InteractionOperandEditPart ioep = (InteractionOperandEditPart)ep;
+				Rectangle parentOperandBounds = ioep.getFigure().getBounds().getCopy();
+				aParentCfep.getFigure().translateToAbsolute(parentOperandBounds);
+
+System.out.println("---------------------------------");		
+System.out.println("depth                        : " + depth);
+System.out.println("this CF                      : " + combinedFragmentEditPart);
+System.out.println("origCFBounds                 : " + origCFBounds + ", right = " + origCFBounds.right() + ", bottom = " + origCFBounds.bottom());
+System.out.println("sizeDelta.width              : " + sizeDelta.width);
+System.out.println("resizedCFBounds              : " + newBoundsCF);
+System.out.println("parentOperandBounds          : " + parentOperandBounds + ", right = " + parentOperandBounds.right() + ", bottom = " + parentOperandBounds.bottom());
+System.out.println("newBounds.right()            : " + newBoundsCF.right());
+System.out.println("parentOperandBounds.right()  : " + parentOperandBounds.right());
+System.out.println("newBounds.bottom()           : " + newBoundsCF.bottom());
+System.out.println("parentOperandBounds.bottom() : " + parentOperandBounds.bottom());
+System.out.println("parent CF                    : " + aParentCfep);
 				
 			
 				// Resize결과 parentOperand보다 크면 parentCF도 Resize 처리
 				if ( newBoundsCF.right() > parentOperandBounds.right() ||
 				     newBoundsCF.bottom() > parentOperandBounds.bottom() ) {
 System.out.println("newBounds is bigger than parentOperand");
-					apexGetCombinedFragmentResizeChildrenCommand(request, aCf, ccmd);
+					apexGetCombinedFragmentResizeChildrenCommand(request, aParentCfep, ccmd, depth);
 				} else {
 					return ccmd;
 				}
-			}			
+			}		
+			*/	
 		}
 
 		return ccmd;
@@ -751,12 +808,12 @@ System.out.println("newBounds is bigger than parentOperand");
 	 * @param ccmd
 	 * @return
 	 */
-	public static Command apexGetCombinedFragmentResizeChildrenCommand(ChangeBoundsRequest request, CombinedFragmentEditPart combinedFragmentEditPart, CompoundCommand ccmd) {
-/*8
+	public static Command apexGetCombinedFragmentResizeChildrenCommand(ChangeBoundsRequest request, CombinedFragmentEditPart combinedFragmentEditPart, CompoundCommand ccmd, int depth) {
+//*8
 System.out.println("*****************************");
 System.out.println("재귀호출");
-*/
-		Command cpCmd = getCombinedFragmentResizeChildrenCommand(request, combinedFragmentEditPart);
+//*/
+		Command cpCmd = getCombinedFragmentResizeChildrenCommand(request, combinedFragmentEditPart, ++depth);
 		
 		// cpCmd를 분해하여 넘겨받은 원래의 ccmd 에 add
 		if ( cpCmd.equals(UnexecutableCommand.INSTANCE)) {
@@ -773,9 +830,10 @@ System.out.println("재귀호출");
 				}
 			}	
 		} else {
-/*8
-System.out.println("return of getCFResizeChildrenCommand is " + cpCmd);
-*/
+
+System.out.println("return of getCFResizeChildrenCommand is not UnexecutableCommand nor CompoundCommand : " + cpCmd);
+			return UnexecutableCommand.INSTANCE;
+
 		}
 		return ccmd;
 	}
