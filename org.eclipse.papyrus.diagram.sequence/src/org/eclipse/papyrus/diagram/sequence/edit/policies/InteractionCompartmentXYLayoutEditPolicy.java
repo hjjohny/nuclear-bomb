@@ -22,7 +22,6 @@ import java.util.Set;
 
 import org.eclipse.draw2d.Connection;
 import org.eclipse.draw2d.ConnectionAnchor;
-import org.eclipse.draw2d.Figure;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.draw2d.geometry.Point;
@@ -60,6 +59,7 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.papyrus.diagram.common.commands.PreserveAnchorsPositionCommand;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.CombinedFragmentCombinedFragmentCompartmentEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.CombinedFragmentEditPart;
+import org.eclipse.papyrus.diagram.sequence.edit.parts.InteractionInteractionCompartmentEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.InteractionOperandEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.LifelineEditPart;
 import org.eclipse.papyrus.diagram.sequence.part.Messages;
@@ -601,9 +601,11 @@ System.out.println("??? in omw right after LifelineEditPart target after Connect
 					// 실제 경계 변경 처리
 					// calculate the new bounds of the interaction operand
 					// scale according to the ratio
+System.out.println("This IOEP : " + ioEP);
+System.out.println("UnResized Bounds : " + newBoundsIO);
 					newBoundsIO.height = (int)(newBoundsIO.height * heightRatio);
 					newBoundsIO.width = (int)(newBoundsIO.width * widthRatio);
-
+System.out.println("Resized Bounds   : " + newBoundsIO);
 					// 첫번째 Operand의 경우 Header영역도 Operand에 포함(io의 y값은 감소시키고, 그만큼 height는 확장)
 					if(firstOperand.equals(io)) {
 						// used to compensate the height of the "header" where the OperandKind is stored
@@ -704,9 +706,9 @@ System.out.println("??? in omw right after LifelineEditPart target after Connect
 
 		// parentOperand가 있고
 		EditPart ep = combinedFragmentEditPart.getParent();
-		if ( ep instanceof InteractionOperandEditPart ) {
+		if ( ep instanceof InteractionOperandEditPart || ep instanceof InteractionInteractionCompartmentEditPart ) {
 			
-			CombinedFragmentEditPart parentCFep = (CombinedFragmentEditPart)ep.getParent().getParent();
+			
 			
 			Point moveDelta = request.getMoveDelta();
 			Dimension sizeDelta = request.getSizeDelta();
@@ -727,35 +729,39 @@ System.out.println("??? in omw right after LifelineEditPart target after Connect
 			
 			// ParentCFEP List(a) 구성
 			//List<CombinedFragmentEditPart> parentCfEditParts = ApexSequenceUtil.apexGetParentCombinedFragmentEditPartList(combinedFragmentEditPart);
-			
 
+			AbstractGraphicalEditPart parentEditPart = (AbstractGraphicalEditPart)ep.getParent().getParent();
 
 			InteractionOperandEditPart ioep = (InteractionOperandEditPart)ep;
 			Rectangle parentOperandBounds = ioep.getFigure().getBounds().getCopy();
-			parentCFep.getFigure().translateToAbsolute(parentOperandBounds);
+			parentEditPart.getFigure().translateToAbsolute(parentOperandBounds);
 
 System.out.println("---------------------------------");		
 System.out.println("depth                        : " + depth);
 System.out.println("this CF                      : " + combinedFragmentEditPart);
 System.out.println("origCFBounds                 : " + origCFBounds + ", right = " + origCFBounds.right() + ", bottom = " + origCFBounds.bottom());
 System.out.println("sizeDelta.width              : " + sizeDelta.width);
-System.out.println("resizedCFBounds              : " + newBoundsCF);
+System.out.println("resizedCFBounds              : " + newBoundsCF + ", right = " + newBoundsCF.right() + ", bottom = " + newBoundsCF.bottom());
 System.out.println("parentOperandBounds          : " + parentOperandBounds + ", right = " + parentOperandBounds.right() + ", bottom = " + parentOperandBounds.bottom());
-System.out.println("newBounds.right()            : " + newBoundsCF.right());
-System.out.println("parentOperandBounds.right()  : " + parentOperandBounds.right());
-System.out.println("newBounds.bottom()           : " + newBoundsCF.bottom());
-System.out.println("parentOperandBounds.bottom() : " + parentOperandBounds.bottom());
-System.out.println("parent CF                    : " + parentCFep);
+System.out.println("parent CF                    : " + parentEditPart);
+System.out.println("parent IO                    : " + (InteractionOperandEditPart)ep);
 			
 		
 			// Resize결과 parentOperand보다 크면 parentCF도 Resize 처리
+			if ( ep instanceof InteractionOperandEditPart ) {
 				if ( newBoundsCF.right() > parentOperandBounds.right() ||
-				     newBoundsCF.bottom() > parentOperandBounds.bottom() ) {
-System.out.println("newBounds is bigger than parentOperand");
-				apexGetCombinedFragmentResizeChildrenCommand(request, parentCFep, ccmd, depth);
-			} else {
-				return ccmd;
+					     newBoundsCF.bottom() > parentOperandBounds.bottom() ) {
+	System.out.println("newBounds is bigger than parentOperand");
+					apexGetCombinedFragmentResizeChildrenCommand(request, (CombinedFragmentEditPart)parentEditPart, ccmd, depth);
+				} else {
+					return ccmd;
+				}
+			} else if (ep instanceof InteractionInteractionCompartmentEditPart) { // 최상위 CF의 경우
+				//Resize 계통 method가 CF가 아닌 AbstractGraphicalEditPart로 동작하도록 개조
+				System.out.println("ep : " + ep);
+				ApexSequenceUtil.apexShowChildrenEditPart(combinedFragmentEditPart.getRoot());
 			}
+				
 
 
 			/*
@@ -789,7 +795,7 @@ System.out.println("newBounds is bigger than parentOperand");
 				}
 			}		
 			*/	
-		}
+		} 
 
 		return ccmd;
 	}
