@@ -601,11 +601,12 @@ System.out.println("??? in omw right after LifelineEditPart target after Connect
 					// 실제 경계 변경 처리
 					// calculate the new bounds of the interaction operand
 					// scale according to the ratio
+System.out.println("This CFEP : " + combinedFragmentEditPart);
 System.out.println("This IOEP : " + ioEP);
-System.out.println("UnResized Bounds : " + newBoundsIO);
+System.out.println("  UnResized Bounds : " + newBoundsIO);
 					newBoundsIO.height = (int)(newBoundsIO.height * heightRatio);
 					newBoundsIO.width = (int)(newBoundsIO.width * widthRatio);
-System.out.println("Resized Bounds   : " + newBoundsIO);
+System.out.println("  Resized Bounds   : " + newBoundsIO);
 					// 첫번째 Operand의 경우 Header영역도 Operand에 포함(io의 y값은 감소시키고, 그만큼 height는 확장)
 					if(firstOperand.equals(io)) {
 						// used to compensate the height of the "header" where the OperandKind is stored
