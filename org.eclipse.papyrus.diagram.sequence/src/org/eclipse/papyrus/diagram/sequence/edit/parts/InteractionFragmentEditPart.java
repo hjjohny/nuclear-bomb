@@ -131,11 +131,19 @@ public abstract class InteractionFragmentEditPart extends ShapeNodeEditPart {
 	}
 
 	/**
+	 * apex updated
+	 * Property 창에서 강제로 covereds에서 제외된 Lifeline은
+	 * CF 경계 변동 시(CF는 좌우이동 안되므로 Resize에만 해당)에도 covereds에 자동 포함 안되도록 개선  
+	 * 
 	 * Update covered lifelines of a Interaction fragment
 	 * 
 	 * @param newBounds
 	 */
 	public void updateCoveredLifelines(Bounds newBounds) {
+		/* apex added start */
+		Rectangle origRect = this.getFigure().getBounds().getCopy();
+		/* apex added end */
+		
 		Rectangle newBound = new Rectangle(newBounds.getX(), newBounds.getY(), newBounds.getWidth(), newBounds.getHeight());
 		InteractionFragment combinedFragment = (InteractionFragment)resolveSemanticElement();
 		EList<Lifeline> coveredLifelines = combinedFragment.getCovereds();
@@ -147,9 +155,21 @@ public abstract class InteractionFragmentEditPart extends ShapeNodeEditPart {
 				LifelineEditPart lifelineEditPart = (LifelineEditPart)child;
 				Lifeline lifeline = (Lifeline)lifelineEditPart.resolveSemanticElement();
 				if(newBound.intersects(lifelineEditPart.getFigure().getBounds())) {
+					/* apex improved start */
 					if(!coveredLifelines.contains(lifeline)) {
+						// 원래 CF에 포함되어 있으면서 coveredLifelines에 없는 것은
+						// Property창에서 수동으로 covereds에서 제외한 것이므로
+						// 원래 CF에 포함되지 않았던 경우에만 add
+						if (!origRect.intersects(lifelineEditPart.getFigure().getBounds())) {
+							coveredLifelinesToAdd.add(lifeline);							
+						}						
+					}
+					/* apex improved end */
+					/* apex replaced
+					if(!coveredLifelines.contains(lifeline)) {						
 						coveredLifelinesToAdd.add(lifeline);
 					}
+					*/
 				} else if(coveredLifelines.contains(lifeline)) {
 					coveredLifelinesToRemove.add(lifeline);
 				}

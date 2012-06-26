@@ -17,9 +17,13 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.draw2d.ColorConstants;
+import org.eclipse.draw2d.Figure;
 import org.eclipse.draw2d.IFigure;
+import org.eclipse.draw2d.PositionConstants;
 import org.eclipse.draw2d.Shape;
 import org.eclipse.draw2d.StackLayout;
+import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EStructuralFeature;
@@ -51,6 +55,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.papyrus.diagram.common.editpolicies.ShowHideCompartmentEditPolicy;
 import org.eclipse.papyrus.diagram.common.helper.PreferenceInitializerForElementHelper;
+import org.eclipse.papyrus.diagram.sequence.edit.policies.ApexResizableShapeEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.CombinedFragmentItemComponentEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.CombinedFragmentItemSemanticEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.SequenceGraphicalNodeEditPolicy;
@@ -58,6 +63,7 @@ import org.eclipse.papyrus.diagram.sequence.figures.CombinedFragmentFigure;
 import org.eclipse.papyrus.diagram.sequence.part.UMLDiagramEditorPlugin;
 import org.eclipse.papyrus.diagram.sequence.part.UMLVisualIDRegistry;
 import org.eclipse.papyrus.diagram.sequence.providers.UMLElementTypes;
+import org.eclipse.papyrus.diagram.sequence.util.ApexSequenceUtil;
 import org.eclipse.papyrus.diagram.sequence.util.CommandHelper;
 import org.eclipse.papyrus.preferences.utils.GradientPreferenceConverter;
 import org.eclipse.papyrus.preferences.utils.PreferenceConstantHelper;
@@ -154,6 +160,18 @@ public class CombinedFragmentEditPart extends InteractionFragmentEditPart {
 			}
 		};
 		return lep;
+	}
+	
+	/**
+	 * apex updated
+	 * 
+	 * @Override
+	 */
+	public EditPolicy getPrimaryDragEditPolicy() {
+		/* apex added start */
+		EditPolicy result = getEditPolicy(EditPolicy.PRIMARY_DRAG_ROLE);
+		return result != null ? result : new ApexResizableShapeEditPolicy(PositionConstants.NORTH_SOUTH);
+		/* apex added end */ 
 	}
 
 	/**
@@ -1125,6 +1143,8 @@ public class CombinedFragmentEditPart extends InteractionFragmentEditPart {
 	}
 
 	/**
+	 * apex updated
+	 * 
 	 * Handle for interaction operator, operator kind and covered lifelines
 	 */
 	protected void handleNotificationEvent(Notification notification) {
@@ -1169,16 +1189,26 @@ public class CombinedFragmentEditPart extends InteractionFragmentEditPart {
 				}
 			}
 		} else if(UMLPackage.eINSTANCE.getInteractionFragment_Covered().equals(feature)) {
+			
 			if(notification.getNotifier() instanceof CombinedFragment) {
+System.out.println("in CFEP.handleNotification(), getInteractionFragment_Covered");
+
+
 				// Synchronize operands' covered lifelines with combined fragment's covered lifelines
 				CombinedFragment combinedFragment = (CombinedFragment)notification.getNotifier();
 				EList<Lifeline> combinedFragmentCoveredLifelines = combinedFragment.getCovereds();
+				
 				for(InteractionOperand operand : combinedFragment.getOperands()) {
 					EList<Lifeline> operandCoveredLifelines = operand.getCovereds();
+				
 					if(!operandCoveredLifelines.equals(combinedFragmentCoveredLifelines)) {
+/*8
+ApexSequenceUtil.apexShowChildrenEditPart(this.getRoot());
+*/
 						// Add new covered lifelines (not already covered)
 						List<Lifeline> coveredLifelinesToAdd = new ArrayList<Lifeline>(combinedFragmentCoveredLifelines);
 						coveredLifelinesToAdd.removeAll(operandCoveredLifelines);
+					
 						if(!coveredLifelinesToAdd.isEmpty()) {
 							CommandHelper.executeCommandWithoutHistory(getEditingDomain(), AddCommand.create(getEditingDomain(), operand, UMLPackage.eINSTANCE.getInteractionFragment_Covered(), coveredLifelinesToAdd));
 						}
@@ -1189,12 +1219,54 @@ public class CombinedFragmentEditPart extends InteractionFragmentEditPart {
 						if(!coveredLifelinesToRemove.isEmpty()) {
 							CommandHelper.executeCommandWithoutHistory(getEditingDomain(), RemoveCommand.create(getEditingDomain(), operand, UMLPackage.eINSTANCE.getInteractionFragment_Covered(), coveredLifelinesToRemove));
 						}
+						
+						/* apex added start */
+						// 여기에 intersect 채색 처리
+						List<EditPart> cfChildEPList = ApexSequenceUtil.apexGetChildEditPartList(this.getRoot());
+						
+						for ( EditPart ep : cfChildEPList ) {
+							if ( ep instanceof LifelineEditPart ) {
+								LifelineEditPart llep = (LifelineEditPart)ep;
+								Lifeline ll = (Lifeline)llep.resolveSemanticElement();
+								
+/*8
+System.out.println("*********** in coloring 1");
+*/
+								
+								if ( coveredLifelinesToRemove.contains(ll) ) {
+/*8
+System.out.println("*********** in coloring 2");
+*/
+									Rectangle llRect = llep.getFigure().getBounds().getCopy();
+									Rectangle cfRect = this.getFigure().getBounds().getCopy();
+									Rectangle intersectRect = llRect.intersect(cfRect);
+/*8
+System.out.println("origi intersectRect : " + intersectRect);
+*/
+									llep.getFigure().getParent().translateToAbsolute(intersectRect);
+									CombinedFragmentFigure cfFigure = this.getPrimaryShape();
+									// 여기에 intersectRect에 CF의 바탕색을 채색하도록(없으면 흰색으로)
+									cfFigure.setForegroundColor(ColorConstants.green);
+/*8
+System.out.println("trans intersectRect : " + intersectRect);
+*/
+									cfFigure.repaint(intersectRect);									
+								}
+							}
+						}						
+						/* apex added end */
 					}
 				}
 			}
+/*8
+System.out.println("*********** after add/remove");
+ApexSequenceUtil.apexShowChildrenEditPart(this);
+*/
 		} else if(notification.getNotifier() instanceof Bounds) {
+
 			updateCoveredLifelines((Bounds)notification.getNotifier());
 		}
+
 
 		super.handleNotificationEvent(notification);
 	}

@@ -127,6 +127,8 @@ AbstractBorderedShapeEditPart {
 	}
 
 	/**
+	 * apex updated
+	 * 
 	 * Remove EditPolicyRoles.DRAG_DROP_ROLE and EditPolicy.PRIMARY_DRAG_ROLE :
 	 * - adding elements to an interactionOperand doesn't anymore resize the enclosing CF
 	 * - interactionOperand are no longer dNd
@@ -145,9 +147,9 @@ AbstractBorderedShapeEditPart {
 
 		installEditPolicy(EditPolicy.LAYOUT_ROLE, createLayoutEditPolicy());
 		installEditPolicy(EditPolicy.LAYOUT_ROLE, new InteractionOperandLayoutEditPolicy());
-		/* omw */
+		/* apex added start */
 		installEditPolicy(ApexEditPolicyRoles.INTERACTIONOPERAND_SELECTION_FOCUS_ROLE, new ApexInteractionOperandSelectionEditPolicy());
-		/* omw */
+		/* apex added end */
 		installEditPolicy(EditPolicy.COMPONENT_ROLE, new InteractionOperandComponentEditPolicy());
 		installEditPolicy(EditPolicy.GRAPHICAL_NODE_ROLE, new SequenceGraphicalNodeEditPolicy());
 		// XXX need an SCR to runtime to have another abstract superclass that would let children add reasonable editpolicies
@@ -1281,6 +1283,8 @@ AbstractBorderedShapeEditPart {
 	}
 
 	/**
+	 * apex updated
+	 * 
 	 * Handle guard modification and update label.
 	 */
 	@Override
@@ -1363,6 +1367,14 @@ AbstractBorderedShapeEditPart {
 		// Continuations are always global in the enclosing InteractionFragment 
 		//(e.g., it always covers all Lifelines covered by the enclosing InteractionFragment)
 		if(UMLPackage.eINSTANCE.getInteractionFragment_Covered().equals(feature)) {
+			
+System.out.println("in IOEP.handleNotification(), getInteractionFragment_Covered");
+			/* apex added start */
+			// 여기에 Operand에서 Covered 변경 시 CF와 동기화 되도록 처리
+
+
+			/* apex added start */
+			
 			// In case we are in an alternative combined fragment, this interaction operand may have continuation which need to be updated.
 			if(InteractionOperatorKind.ALT_LITERAL.equals(getInteractionOperator())) {
 				InteractionOperand interactionOperand = (InteractionOperand)notification.getNotifier();
