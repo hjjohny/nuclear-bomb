@@ -23,6 +23,7 @@ import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.gef.EditPart;
+import org.eclipse.gef.GraphicalEditPart;
 import org.eclipse.gef.Request;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CompoundCommand;
@@ -783,4 +784,34 @@ public class LifelineXYLayoutEditPolicy extends XYLayoutEditPolicy {
 		relBounds.y -= parentRectangle.y;
 		return relBounds;
 	}
+
+	/**
+	 * apex updated
+	 */
+	@Override
+	protected Command getAddCommand(Request generic) {
+		/*8
+		StackTraceElement stackTrace = Thread.currentThread().getStackTrace()[1];
+		System.out.println(stackTrace.getClassName() + "::" + stackTrace.getMethodName());
+		*/
+		/* apex improved start*/
+		// jiho - ConnectionHandle이 표시된 상태에서 그 위로 Lifeline을 drop하면 AddCommand을 생성하게 됨
+		//        Lifeline 사이의 child(ExecSpec 등)들의 이동에도 이 로직을 타므로 이동기능을 사용하려면 수정되어야 함
+		return null;
+		/* apex improved end */
+		/* apex replaced
+		return super.getAddCommand(generic);
+		 */
+	}
+
+	@Override
+	protected Object getConstraintFor(ChangeBoundsRequest request,
+			GraphicalEditPart child) {
+		Rectangle rect = (Rectangle)super.getConstraintFor(request, child);
+		if (child instanceof LifelineEditPart) {
+			child.getFigure().translateToRelative(rect);
+		}
+		return rect;
+	}
+	
 }

@@ -34,6 +34,7 @@ import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.editpolicies.LayoutEditPolicy;
 import org.eclipse.gef.editpolicies.NonResizableEditPolicy;
 import org.eclipse.gef.editpolicies.ResizableEditPolicy;
+import org.eclipse.gef.requests.ChangeBoundsRequest;
 import org.eclipse.gef.requests.CreateRequest;
 import org.eclipse.gef.requests.ReconnectRequest;
 import org.eclipse.gmf.runtime.diagram.ui.editparts.IGraphicalEditPart;
@@ -43,7 +44,6 @@ import org.eclipse.gmf.runtime.diagram.ui.requests.CreateUnspecifiedTypeConnecti
 import org.eclipse.gmf.runtime.diagram.ui.requests.CreateUnspecifiedTypeRequest;
 import org.eclipse.gmf.runtime.draw2d.ui.figures.FigureUtilities;
 import org.eclipse.gmf.runtime.emf.type.core.IElementType;
-import org.eclipse.gmf.runtime.gef.ui.figures.DefaultSizeNodeFigure;
 import org.eclipse.gmf.runtime.gef.ui.figures.NodeFigure;
 import org.eclipse.gmf.runtime.notation.NotationPackage;
 import org.eclipse.gmf.runtime.notation.View;
@@ -54,6 +54,7 @@ import org.eclipse.papyrus.diagram.sequence.edit.policies.ActionExecutionSpecifi
 import org.eclipse.papyrus.diagram.sequence.edit.policies.ApexResizableShapeEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.ElementCreationWithMessageEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.ExecutionSpecificationComponentEditPolicy;
+import org.eclipse.papyrus.diagram.sequence.figures.ApexCustomDefaultSizeNodeFigure;
 import org.eclipse.papyrus.diagram.sequence.providers.UMLElementTypes;
 import org.eclipse.papyrus.preferences.utils.GradientPreferenceConverter;
 import org.eclipse.papyrus.preferences.utils.PreferenceConstantHelper;
@@ -148,8 +149,12 @@ ShapeNodeEditPart {
 	 * @generated NOT
 	 */
 	protected NodeFigure createNodePlate() {
+		/* apex improved start */
+		ApexCustomDefaultSizeNodeFigure result = new ApexCustomDefaultSizeNodeFigure(16, 60) {
+		/* apex improved end */
+		/* apex replaced
 		DefaultSizeNodeFigure result = new DefaultSizeNodeFigure(16, 60) {
-
+		*/
 			/**
 			 * @see org.eclipse.gmf.runtime.gef.ui.figures.NodeFigure#isDefaultAnchorArea(org.eclipse.draw2d.geometry.PrecisionPoint)
 			 */
@@ -169,7 +174,14 @@ ShapeNodeEditPart {
 	public EditPolicy getPrimaryDragEditPolicy() {
 		/* apex improved start */
 		EditPolicy result = getEditPolicy(EditPolicy.PRIMARY_DRAG_ROLE);
-		result = result != null ? result : new ApexResizableShapeEditPolicy(PositionConstants.NORTH_SOUTH);
+		result = result != null ? result : new ApexResizableShapeEditPolicy(PositionConstants.NORTH_SOUTH) {
+
+			@Override
+			protected Command getMoveCommand(ChangeBoundsRequest request) {
+				return null;
+			}
+			
+		};
 		/* apex improved end */
 		/* apex replaced
 		EditPolicy result = super.getPrimaryDragEditPolicy();

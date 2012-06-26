@@ -55,6 +55,7 @@ import org.eclipse.papyrus.diagram.sequence.edit.policies.ApexResizableShapeEdit
 import org.eclipse.papyrus.diagram.sequence.edit.policies.BehaviorExecutionSpecificationItemSemanticEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.ElementCreationWithMessageEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.ExecutionSpecificationComponentEditPolicy;
+import org.eclipse.papyrus.diagram.sequence.figures.ApexCustomDefaultSizeNodeFigure;
 import org.eclipse.papyrus.diagram.sequence.providers.UMLElementTypes;
 import org.eclipse.papyrus.preferences.utils.GradientPreferenceConverter;
 import org.eclipse.papyrus.preferences.utils.PreferenceConstantHelper;
@@ -147,8 +148,12 @@ public class BehaviorExecutionSpecificationEditPart extends ShapeNodeEditPart {
 	 * @generated NOT
 	 */
 	protected NodeFigure createNodePlate() {
+		/* apex improved start */
+		ApexCustomDefaultSizeNodeFigure result = new ApexCustomDefaultSizeNodeFigure(16, 60) {
+		/* apex improved end */
+		/* apex replaced
 		DefaultSizeNodeFigure result = new DefaultSizeNodeFigure(16, 60) {
-
+		*/
 			/**
 			 * @see org.eclipse.gmf.runtime.gef.ui.figures.NodeFigure#isDefaultAnchorArea(org.eclipse.draw2d.geometry.PrecisionPoint)
 			 */
@@ -170,7 +175,14 @@ public class BehaviorExecutionSpecificationEditPart extends ShapeNodeEditPart {
 	public EditPolicy getPrimaryDragEditPolicy() {
 		/* apex improved start */
 		EditPolicy result = getEditPolicy(EditPolicy.PRIMARY_DRAG_ROLE);
-		result = result != null ? result : new ApexResizableShapeEditPolicy(PositionConstants.NORTH_SOUTH);
+		result = result != null ? result : new ApexResizableShapeEditPolicy(PositionConstants.NORTH_SOUTH) {
+
+			@Override
+			protected Command getMoveCommand(ChangeBoundsRequest request) {
+				return null;
+			}
+			
+		};
 		/* apex improved end */
 		/* apex replaced
 		EditPolicy result = super.getPrimaryDragEditPolicy();

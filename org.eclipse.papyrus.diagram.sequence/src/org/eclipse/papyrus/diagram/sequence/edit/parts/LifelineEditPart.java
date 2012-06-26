@@ -57,6 +57,7 @@ import org.eclipse.gmf.runtime.diagram.ui.editpolicies.CreationEditPolicy;
 import org.eclipse.gmf.runtime.diagram.ui.editpolicies.DragDropEditPolicy;
 import org.eclipse.gmf.runtime.diagram.ui.editpolicies.EditPolicyRoles;
 import org.eclipse.gmf.runtime.diagram.ui.figures.IBorderItemLocator;
+import org.eclipse.gmf.runtime.diagram.ui.requests.CreateConnectionViewRequest;
 import org.eclipse.gmf.runtime.diagram.ui.requests.CreateUnspecifiedTypeConnectionRequest;
 import org.eclipse.gmf.runtime.draw2d.ui.figures.ConstrainedToolbarLayout;
 import org.eclipse.gmf.runtime.draw2d.ui.figures.FigureUtilities;
@@ -77,6 +78,7 @@ import org.eclipse.papyrus.diagram.common.editpolicies.AppliedStereotypeLabelDis
 import org.eclipse.papyrus.diagram.common.editpolicies.BorderItemResizableEditPolicy;
 import org.eclipse.papyrus.diagram.common.figure.node.NodeNamedElementFigure;
 import org.eclipse.papyrus.diagram.common.providers.UIAdapterImpl;
+import org.eclipse.papyrus.diagram.sequence.edit.policies.ApexLifelineConnectionHandleEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.ApexResizableShapeEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.CustomDiagramDragDropEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.ElementCreationWithMessageEditPolicy;
@@ -85,6 +87,7 @@ import org.eclipse.papyrus.diagram.sequence.edit.policies.LifelineCreationEditPo
 import org.eclipse.papyrus.diagram.sequence.edit.policies.LifelineItemSemanticEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.LifelineXYLayoutEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.RemoveOrphanViewPolicy;
+import org.eclipse.papyrus.diagram.sequence.figures.ApexCustomLifelineDotLineCustomFigure;
 import org.eclipse.papyrus.diagram.sequence.figures.LifelineDotLineCustomFigure;
 import org.eclipse.papyrus.diagram.sequence.locator.CenterLocator;
 import org.eclipse.papyrus.diagram.sequence.locator.TimeMarkElementPositionLocator;
@@ -92,6 +95,7 @@ import org.eclipse.papyrus.diagram.sequence.part.UMLVisualIDRegistry;
 import org.eclipse.papyrus.diagram.sequence.providers.UMLElementTypes;
 import org.eclipse.papyrus.diagram.sequence.util.CommandHelper;
 import org.eclipse.papyrus.diagram.sequence.util.NotificationHelper;
+import org.eclipse.papyrus.diagram.sequence.util.SequenceRequestConstant;
 import org.eclipse.papyrus.preferences.utils.GradientPreferenceConverter;
 import org.eclipse.papyrus.preferences.utils.PreferenceConstantHelper;
 import org.eclipse.swt.graphics.Color;
@@ -163,6 +167,8 @@ public class LifelineEditPart extends NamedElementEditPart {
 	}
 
 	/**
+	 * apex updated
+	 * 
 	 * @generated
 	 */
 	@Override
@@ -185,6 +191,10 @@ public class LifelineEditPart extends NamedElementEditPart {
 		installEditPolicy(AppliedStereotypeLabelDisplayEditPolicy.STEREOTYPE_LABEL_POLICY, new LifelineAppliedStereotypeNodeLabelDisplayEditPolicy());
 		// XXX need an SCR to runtime to have another abstract superclass that would let children add reasonable editpolicies
 		// removeEditPolicy(org.eclipse.gmf.runtime.diagram.ui.editpolicies.EditPolicyRoles.CONNECTION_HANDLES_ROLE);
+		/* apex added start */
+		// jiho - ConnectionHandle을 DashLine에 위치시키는 EditPolicy
+		installEditPolicy(EditPolicyRoles.CONNECTION_HANDLES_ROLE, new ApexLifelineConnectionHandleEditPolicy());
+		/* apex added end*/
 	}
 
 	/**
@@ -1356,6 +1366,8 @@ public class LifelineEditPart extends NamedElementEditPart {
 		}
 
 		/**
+		 * apex updated
+		 * 
 		 * @generated NOT remove label creation, change layout
 		 */
 		private void createContents() {
@@ -1402,7 +1414,12 @@ public class LifelineEditPart extends NamedElementEditPart {
 			this.add(fFigureExecutionsContainerFigure, BorderLayout.CENTER);
 			fFigureExecutionsContainerFigure.setLayoutManager(new StackLayout());
 
+			/* apex improved start */
+			fFigureLifelineDotLineFigure = new ApexCustomLifelineDotLineCustomFigure();
+			/* apex improved end */
+			/* apex replaced
 			fFigureLifelineDotLineFigure = new LifelineDotLineCustomFigure();
+			*/
 
 			fFigureExecutionsContainerFigure.add(fFigureLifelineDotLineFigure);
 
@@ -1798,6 +1815,18 @@ public class LifelineEditPart extends NamedElementEditPart {
 					return new LifelineAnchor(getPrimaryShape().getFigureLifelineNameContainerFigure());
 				}
 			}
+			
+			/* apex added start */
+			// jiho - 복수 ElementType에 대한 처리
+			for (Object elementType : createRequest.getElementTypes()) {
+				Request createConnectionRequest = createRequest.getRequestForType((IElementType)elementType);
+				if (createConnectionRequest instanceof CreateConnectionViewRequest) {
+					ConnectionAnchor targetAnchor = getTargetConnectionAnchor(createConnectionRequest);
+					if (targetAnchor != null)
+						return targetAnchor;
+				}
+			}
+			/* apex added end */
 		} else if(request instanceof ReconnectRequest) {
 			ReconnectRequest reconnectRequest = (ReconnectRequest)request;
 			ConnectionEditPart connectionEditPart = reconnectRequest.getConnectionEditPart();
@@ -1806,7 +1835,20 @@ public class LifelineEditPart extends NamedElementEditPart {
 				return new LifelineAnchor(getPrimaryShape().getFigureLifelineNameContainerFigure());
 			}
 		}
-
+		/* apex added start */
+		if (request instanceof CreateConnectionViewRequest) {
+			CreateConnectionViewRequest createRequest = (CreateConnectionViewRequest)request;
+			Point sourceLocation = (Point)createRequest.getExtendedData().get(SequenceRequestConstant.SOURCE_LOCATION_DATA);
+			Point location = createRequest.getLocation().getCopy();
+			location.y = sourceLocation.y;
+			// 화면 이동에 따른 location의 위치 변동
+			getNodeFigure().translateFromParent(location);
+			// ExecutionSpecification생성 시 location 이용
+			createRequest.setLocation(location);
+			return getNodeFigure().getTargetConnectionAnchorAt(location);
+		}
+		/* apex added end */
+		
 		return super.getTargetConnectionAnchor(request);
 	}
 

@@ -21,11 +21,13 @@ import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EAnnotation;
+import org.eclipse.gef.EditPolicy;
 import org.eclipse.gef.GraphicalEditPart;
 import org.eclipse.gef.Request;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.editpolicies.NonResizableEditPolicy;
 import org.eclipse.gef.handles.MoveHandle;
+import org.eclipse.gef.requests.ChangeBoundsRequest;
 import org.eclipse.gmf.runtime.diagram.ui.editparts.DiagramEditPart;
 import org.eclipse.gmf.runtime.diagram.ui.editpolicies.EditPolicyRoles;
 import org.eclipse.gmf.runtime.diagram.ui.editpolicies.NonResizableLabelEditPolicy;
@@ -34,6 +36,7 @@ import org.eclipse.gmf.runtime.notation.View;
 import org.eclipse.papyrus.diagram.common.editpolicies.DuplicatePasteEditPolicy;
 import org.eclipse.papyrus.diagram.common.providers.ViewInfo;
 import org.eclipse.papyrus.diagram.common.util.MDTUtil;
+import org.eclipse.papyrus.diagram.sequence.edit.policies.ApexPackageXYLayoutEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.CustomDiagramDragDropEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.PackageItemSemanticEditPolicy;
 import org.eclipse.papyrus.diagram.sequence.edit.policies.RemoveOrphanViewPolicy;
@@ -108,6 +111,8 @@ public class PackageEditPart extends DiagramEditPart {
 	}
 
 	/**
+	 * apex updated
+	 * 
 	 * Remove the two policies dealing with the popup menu
 	 * 
 	 * @generated NOT
@@ -123,6 +128,9 @@ public class PackageEditPart extends DiagramEditPart {
 
 		installEditPolicy("RemoveOrphanView", new RemoveOrphanViewPolicy()); //$NON-NLS-1$
 		installEditPolicy(EditPolicyRoles.DRAG_DROP_ROLE, new CustomDiagramDragDropEditPolicy());
+		/* apex added start */
+		installEditPolicy(EditPolicy.LAYOUT_ROLE, new ApexPackageXYLayoutEditPolicy());
+		/* apex added end */
 		removeEditPolicy(org.eclipse.gmf.runtime.diagram.ui.editpolicies.EditPolicyRoles.POPUPBAR_ROLE);
 		removeEditPolicy(EditPolicyRoles.CONNECTION_HANDLES_ROLE);
 	}
