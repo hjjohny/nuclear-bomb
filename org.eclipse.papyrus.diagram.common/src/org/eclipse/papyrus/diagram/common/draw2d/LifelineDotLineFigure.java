@@ -39,17 +39,31 @@ public class LifelineDotLineFigure extends Shape {
 	// Methods
 
 	/**
+	 * apex updated
+	 * 
 	 * Instantiates a new lifeline dot line figure.
 	 */
 	public LifelineDotLineFigure() {
 		super();
 
+		/* apex improved start */
 		// Init dashLineRectangle
-		dashLineRectangle = new NodeFigure();
+		dashLineRectangle = apexCreateDashLineRectangle();
+		/* apex improved end */
+		/* apex replaced
+		 * dashLineRectangle = new Nodefigure();
+		 */
 		dashLineRectangle.setParent(this);
 
 	}
 
+	/**
+	 * Create Dash Line Figure
+	 * @return
+	 */
+	protected NodeFigure apexCreateDashLineRectangle() {
+		return new NodeFigure();
+	}
 
 	/*
 	 * (non-Javadoc)
