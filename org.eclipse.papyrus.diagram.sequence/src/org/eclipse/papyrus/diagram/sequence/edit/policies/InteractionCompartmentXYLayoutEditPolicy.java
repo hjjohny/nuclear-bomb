@@ -601,12 +601,16 @@ System.out.println("??? in omw right after LifelineEditPart target after Connect
 					// 실제 경계 변경 처리
 					// calculate the new bounds of the interaction operand
 					// scale according to the ratio
+/*8
 System.out.println("This CFEP : " + combinedFragmentEditPart);
 System.out.println("This IOEP : " + ioEP);
 System.out.println("  UnResized Bounds : " + newBoundsIO);
+*/
 					newBoundsIO.height = (int)(newBoundsIO.height * heightRatio);
 					newBoundsIO.width = (int)(newBoundsIO.width * widthRatio);
+/*8
 System.out.println("  Resized Bounds   : " + newBoundsIO);
+*/
 					// 첫번째 Operand의 경우 Header영역도 Operand에 포함(io의 y값은 감소시키고, 그만큼 height는 확장)
 					if(firstOperand.equals(io)) {
 						// used to compensate the height of the "header" where the OperandKind is stored
@@ -743,7 +747,7 @@ System.out.println("  Resized Bounds   : " + newBoundsIO);
 				InteractionOperandEditPart ioep = (InteractionOperandEditPart)ep;
 				Rectangle parentOperandBounds = ioep.getFigure().getBounds().getCopy();
 				parentEditPart.getFigure().translateToAbsolute(parentOperandBounds);
-				
+/*8				
 				System.out.println("---------------------------------");		
 				System.out.println("depth                        : " + depth);
 				System.out.println("this EP                      : " + combinedFragmentEditPart);
@@ -753,7 +757,7 @@ System.out.println("  Resized Bounds   : " + newBoundsIO);
 				System.out.println("parentOperandBounds          : " + parentOperandBounds + ", right = " + parentOperandBounds.right() + ", bottom = " + parentOperandBounds.bottom());
 				System.out.println("parent EP                    : " + parentEditPart);
 				System.out.println("parent IO                    : " + (InteractionOperandEditPart)ep);
-				
+*/
 				if ( newBoundsCF.right() > parentOperandBounds.right() ||
 					     newBoundsCF.bottom() > parentOperandBounds.bottom() ) {
 	System.out.println("newBounds is bigger than parentOperand");
@@ -766,7 +770,7 @@ System.out.println("  Resized Bounds   : " + newBoundsIO);
 				InteractionInteractionCompartmentEditPart iicep = (InteractionInteractionCompartmentEditPart)ep;
 				Rectangle parentIicEPBounds = iicep.getFigure().getBounds().getCopy();
 				parentEditPart.getFigure().translateToAbsolute(parentIicEPBounds);
-				
+/*8
 				System.out.println("---------------------------------");		
 				System.out.println("depth                        : " + depth);
 				System.out.println("this EP                      : " + combinedFragmentEditPart);
@@ -776,10 +780,12 @@ System.out.println("  Resized Bounds   : " + newBoundsIO);
 				System.out.println("parentIICBounds              : " + parentIicEPBounds + ", right = " + parentIicEPBounds.right() + ", bottom = " + parentIicEPBounds.bottom());
 				System.out.println("parent EP                    : " + parentEditPart);
 				System.out.println("parent IIC                   : " + (InteractionInteractionCompartmentEditPart)ep);
-				
+*/
 				if ( newBoundsCF.right() > parentIicEPBounds.right() ||
 					     newBoundsCF.bottom() > parentIicEPBounds.bottom() ) {
-	System.out.println("newBounds is bigger than parentIIC");
+/*8
+System.out.println("newBounds is bigger than parentIIC");
+*/
 					apexGetCombinedFragmentResizeChildrenCommand(request, (CombinedFragmentEditPart)parentEditPart, ccmd, depth);
 				} else {
 					return ccmd;
@@ -839,7 +845,7 @@ System.out.println("newBounds is bigger than parentOperand");
 	 * @return
 	 */
 	public static Command apexGetCombinedFragmentResizeChildrenCommand(ChangeBoundsRequest request, CombinedFragmentEditPart combinedFragmentEditPart, CompoundCommand ccmd, int depth) {
-//*8
+/*8
 System.out.println("*****************************");
 System.out.println("재귀호출");
 //*/

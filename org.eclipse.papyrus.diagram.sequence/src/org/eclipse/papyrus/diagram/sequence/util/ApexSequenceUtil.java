@@ -14,17 +14,22 @@
 package org.eclipse.papyrus.diagram.sequence.util;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.draw2d.IFigure;
+import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.gef.EditPart;
 import org.eclipse.gef.editparts.AbstractGraphicalEditPart;
+import org.eclipse.gmf.runtime.diagram.ui.editparts.ShapeEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.CombinedFragmentEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.InteractionOperandEditPart;
+import org.eclipse.papyrus.diagram.sequence.edit.parts.LifelineEditPart;
 import org.eclipse.uml2.uml.InteractionOperand;
+import org.eclipse.uml2.uml.Lifeline;
 
 public class ApexSequenceUtil {
 
@@ -276,5 +281,38 @@ System.out.println("+++++ below List End+++++");
 			}
 		}
 		return aboveEditPart;
+	}
+	
+	/**
+	 * SequenceUtil에 있던 메서드지만 아무도 호출하지 않아
+	 * ApexSequenceUtil 로 가져와서 개조 사용
+	 * Property의 covered 설정과 관계없이
+	 * 해다 Rectangle에 intersect되는 모든 Lifeline 반환
+	 * 
+	 * @param selectionRect
+	 * @param hostEditPart
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public static List getPositionallyCoveredLifelineEditParts(Rectangle selectionRect, EditPart hostEditPart) {
+		
+		List positionallyCoveredLifelineEditParts = new ArrayList();
+
+		// retrieve all the edit parts in the registry
+		Set<Entry<Object, EditPart>> allEditPartEntries = hostEditPart.getViewer().getEditPartRegistry().entrySet();
+		for(Entry<Object, EditPart> epEntry : allEditPartEntries) {
+			EditPart ep = epEntry.getValue();
+
+			if(ep instanceof LifelineEditPart) {
+				Rectangle figureBounds = SequenceUtil.getAbsoluteBounds((LifelineEditPart)ep);
+
+				if(selectionRect.intersects(figureBounds)) {
+					positionallyCoveredLifelineEditParts.add(ep);
+				}
+			}
+
+		}
+System.out.println("positionallyCoveredLifelineEditParts : " + positionallyCoveredLifelineEditParts);
+		return positionallyCoveredLifelineEditParts;
 	}
 }

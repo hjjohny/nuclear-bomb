@@ -883,6 +883,12 @@ public class SequenceUtil {
 		}
 	}
 
+	/**
+	 * 원래있던 이 메서드는 아무도 호출하지 않음
+	 * @param selectionRect
+	 * @param hostEditPart
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	public static Set<Lifeline> getCoveredLifelines(Rectangle selectionRect, EditPart hostEditPart) {
 		Set<Lifeline> coveredLifelines = new HashSet<Lifeline>();

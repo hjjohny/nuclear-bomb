@@ -1191,7 +1191,9 @@ public class CombinedFragmentEditPart extends InteractionFragmentEditPart {
 		} else if(UMLPackage.eINSTANCE.getInteractionFragment_Covered().equals(feature)) {
 			
 			if(notification.getNotifier() instanceof CombinedFragment) {
+/*8
 System.out.println("in CFEP.handleNotification(), getInteractionFragment_Covered");
+*/
 
 
 				// Synchronize operands' covered lifelines with combined fragment's covered lifelines
