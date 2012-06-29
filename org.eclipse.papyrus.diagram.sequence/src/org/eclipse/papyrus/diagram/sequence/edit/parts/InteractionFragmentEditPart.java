@@ -171,9 +171,9 @@ public abstract class InteractionFragmentEditPart extends ShapeNodeEditPart {
 		} else {
 			// width 축소 시 원래 경계 내에 있던 lifeline을 check
 			if (origRect.width >= newBound.width ) {
-				lifelineEditPartsToCheck = ApexSequenceUtil.getPositionallyCoveredLifelineEditParts(origRect, this);	
+				lifelineEditPartsToCheck = ApexSequenceUtil.apexGetPositionallyCoveredLifelineEditParts(origRect, this);	
 			} else { // width 확대 시 새 경계내에 있는 lifeline을 check
-				lifelineEditPartsToCheck = ApexSequenceUtil.getPositionallyCoveredLifelineEditParts(newBound, this);
+				lifelineEditPartsToCheck = ApexSequenceUtil.apexGetPositionallyCoveredLifelineEditParts(newBound, this);
 			}				
 		}
 			

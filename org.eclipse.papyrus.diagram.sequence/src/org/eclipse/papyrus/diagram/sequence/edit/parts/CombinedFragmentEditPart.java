@@ -170,7 +170,7 @@ public class CombinedFragmentEditPart extends InteractionFragmentEditPart {
 	public EditPolicy getPrimaryDragEditPolicy() {
 		/* apex added start */
 		EditPolicy result = getEditPolicy(EditPolicy.PRIMARY_DRAG_ROLE);
-		return result != null ? result : new ApexResizableShapeEditPolicy(PositionConstants.NORTH_SOUTH);
+		return result != null ? result : new ApexResizableShapeEditPolicy(PositionConstants.NORTH_SOUTH, false, false);
 		/* apex added end */ 
 	}
 
@@ -1248,7 +1248,7 @@ System.out.println("origi intersectRect : " + intersectRect);
 									llep.getFigure().getParent().translateToAbsolute(intersectRect);
 									CombinedFragmentFigure cfFigure = this.getPrimaryShape();
 									// 여기에 intersectRect에 CF의 바탕색을 채색하도록(없으면 흰색으로)
-									cfFigure.setForegroundColor(ColorConstants.green);
+//******							cfFigure.setForegroundColor(ColorConstants.green);
 /*8
 System.out.println("trans intersectRect : " + intersectRect);
 */
@@ -1265,7 +1265,21 @@ System.out.println("*********** after add/remove");
 ApexSequenceUtil.apexShowChildrenEditPart(this);
 */
 		} else if(notification.getNotifier() instanceof Bounds) {
+/*8
+System.out.println("menu auto resize affects CF.handleNotification...");
+*/
+// 여기서 출력되는 bounds 는 직전 Resize 시의 bound가 출력됨
 
+/*8
+IFigure thisFigure = getFigure();
+Rectangle thisRect = thisFigure.getBounds().getCopy();
+IFigure parentFigure = getFigure().getParent().getParent();
+System.out.println("parentFigure : " + parentFigure);
+System.out.println("ReSized Figure before absolute : " + thisRect);
+parentFigure.translateToAbsolute(thisRect);
+System.out.println("ReSized Figure after  absolute : " + thisRect);
+System.out.println("(Bounds)notification.getNotifier() : " + (Bounds)notification.getNotifier());
+*/
 			updateCoveredLifelines((Bounds)notification.getNotifier());
 		}
 

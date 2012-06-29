@@ -294,7 +294,7 @@ System.out.println("+++++ below List End+++++");
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static List getPositionallyCoveredLifelineEditParts(Rectangle selectionRect, EditPart hostEditPart) {
+	public static List apexGetPositionallyCoveredLifelineEditParts(Rectangle selectionRect, EditPart hostEditPart) {
 		
 		List positionallyCoveredLifelineEditParts = new ArrayList();
 
@@ -312,7 +312,9 @@ System.out.println("+++++ below List End+++++");
 			}
 
 		}
+/*8
 System.out.println("positionallyCoveredLifelineEditParts : " + positionallyCoveredLifelineEditParts);
+*/
 		return positionallyCoveredLifelineEditParts;
 	}
 }
