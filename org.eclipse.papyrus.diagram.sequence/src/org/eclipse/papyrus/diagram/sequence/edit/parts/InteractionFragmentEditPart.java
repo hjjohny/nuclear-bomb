@@ -159,6 +159,12 @@ public abstract class InteractionFragmentEditPart extends ShapeNodeEditPart {
 		/* apex improved start */
 		List lifelineEditPartsToCheck = null;
 		
+//*8
+System.out.println("in updateCoveredLifelines, orig : " + origRect);
+System.out.println("in updateCoveredLifelines, new  : " + newBound);
+//*/
+
+		
 		if ( origRect.equals(0, 0, 0, 0)) { // 새 CombinedFragment 생성하는 경우 Interaction 내 모든 Lifeline을 check
 			lifelineEditPartsToCheck = new ArrayList();
 			Set<Entry<Object, EditPart>> allEditPartEntries = getViewer().getEditPartRegistry().entrySet();

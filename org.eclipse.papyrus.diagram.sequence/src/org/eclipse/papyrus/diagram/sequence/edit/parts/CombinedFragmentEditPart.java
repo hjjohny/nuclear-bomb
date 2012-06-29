@@ -1270,16 +1270,17 @@ System.out.println("menu auto resize affects CF.handleNotification...");
 */
 // 여기서 출력되는 bounds 는 직전 Resize 시의 bound가 출력됨
 
-/*8
+//*8
 IFigure thisFigure = getFigure();
 Rectangle thisRect = thisFigure.getBounds().getCopy();
 IFigure parentFigure = getFigure().getParent().getParent();
+System.out.println("****************************");
 System.out.println("parentFigure : " + parentFigure);
 System.out.println("ReSized Figure before absolute : " + thisRect);
 parentFigure.translateToAbsolute(thisRect);
 System.out.println("ReSized Figure after  absolute : " + thisRect);
 System.out.println("(Bounds)notification.getNotifier() : " + (Bounds)notification.getNotifier());
-*/
+//*/
 			updateCoveredLifelines((Bounds)notification.getNotifier());
 		}
 
