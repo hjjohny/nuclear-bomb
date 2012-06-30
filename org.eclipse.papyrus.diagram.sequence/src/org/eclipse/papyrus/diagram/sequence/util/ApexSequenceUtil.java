@@ -287,14 +287,17 @@ System.out.println("+++++ below List End+++++");
 	 * SequenceUtil에 있던 메서드지만 아무도 호출하지 않아
 	 * ApexSequenceUtil 로 가져와서 개조 사용
 	 * Property의 covered 설정과 관계없이
-	 * 해다 Rectangle에 intersect되는 모든 Lifeline 반환
+	 * 해당 Rectangle에 intersect되는 모든 Lifeline 반환
+	 * 절대좌표로 비교
 	 * 
 	 * @param selectionRect
 	 * @param hostEditPart
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static List apexGetPositionallyCoveredLifelineEditParts(Rectangle selectionRect, EditPart hostEditPart) {
+	public static List apexGetPositionallyCoveredLifelineEditParts(Rectangle selectionRect, AbstractGraphicalEditPart hostEditPart) {
+		
+		hostEditPart.getFigure().translateToAbsolute(selectionRect);
 		
 		List positionallyCoveredLifelineEditParts = new ArrayList();
 

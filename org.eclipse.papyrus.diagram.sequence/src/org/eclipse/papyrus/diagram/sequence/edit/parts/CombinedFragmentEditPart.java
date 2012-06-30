@@ -1270,7 +1270,7 @@ System.out.println("menu auto resize affects CF.handleNotification...");
 */
 // 여기서 출력되는 bounds 는 직전 Resize 시의 bound가 출력됨
 
-//*8
+/*8
 IFigure thisFigure = getFigure();
 Rectangle thisRect = thisFigure.getBounds().getCopy();
 IFigure parentFigure = getFigure().getParent().getParent();

@@ -19,6 +19,7 @@ import org.eclipse.gef.GraphicalEditPart;
 import org.eclipse.gef.Request;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CompoundCommand;
+import org.eclipse.gef.commands.UnexecutableCommand;
 import org.eclipse.gef.requests.ChangeBoundsRequest;
 import org.eclipse.gef.requests.CreateConnectionRequest;
 import org.eclipse.gmf.runtime.diagram.ui.editpolicies.ResizableShapeEditPolicy;
@@ -76,6 +77,9 @@ public class InteractionOperandLayoutEditPolicy extends XYLayoutEditPolicy {
 	}
 
 	/**
+	 * apex updated
+	 * return 받은 command 가 executable하지 않으면 바로 UnexecutableCommand.INSTANCE 반환
+	 * 
 	 * Handle combined fragment resize
 	 */
 	@Override
@@ -89,9 +93,19 @@ public class InteractionOperandLayoutEditPolicy extends XYLayoutEditPolicy {
 			if(constraintFor != null) {
 				if(child instanceof CombinedFragmentEditPart) {
 					Command resizeChildrenCommand = InteractionCompartmentXYLayoutEditPolicy.getCombinedFragmentResizeChildrenCommand(request, (CombinedFragmentEditPart)child);
+					/* apex improved start */
+					if(resizeChildrenCommand != null && resizeChildrenCommand.canExecute()) {
+						compoundCmd.add(resizeChildrenCommand);
+					} else {
+						return UnexecutableCommand.INSTANCE;
+					}
+					/* apex end start */
+					
+					/* apex replaced
 					if(resizeChildrenCommand != null && resizeChildrenCommand.canExecute()) {
 						compoundCmd.add(resizeChildrenCommand);
 					}
+					 */
 				}
 
 				Command changeConstraintCommand = createChangeConstraintCommand(request, child, translateToModelConstraint(constraintFor));
