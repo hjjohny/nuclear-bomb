@@ -14,6 +14,7 @@
 package org.eclipse.papyrus.diagram.sequence.util;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -26,10 +27,12 @@ import org.eclipse.gef.editparts.AbstractGraphicalEditPart;
 import org.eclipse.gmf.runtime.diagram.ui.editparts.ConnectionEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.ActionExecutionSpecificationEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.BehaviorExecutionSpecificationEditPart;
+import org.eclipse.gmf.runtime.diagram.ui.editparts.ShapeEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.CombinedFragmentEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.InteractionOperandEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.LifelineEditPart;
 import org.eclipse.uml2.uml.InteractionOperand;
+import org.eclipse.uml2.uml.Lifeline;
 
 public class ApexSequenceUtil {
 
@@ -282,7 +285,7 @@ System.out.println("+++++ below List End+++++");
 		}
 		return aboveEditPart;
 	}
-
+	
 	/**
 	 * Message에 링크된 ExecutionSpec과 Message들을 리스트로 반환
 	 * 
@@ -366,5 +369,43 @@ System.out.println("+++++ below List End+++++");
 		}
 		
 		return list;
+	}
+
+	/**
+	 * SequenceUtil에 있던 메서드지만 아무도 호출하지 않아
+	 * ApexSequenceUtil 로 가져와서 개조 사용
+	 * Property의 covered 설정과 관계없이
+	 * 해당 Rectangle에 intersect되는 모든 Lifeline 반환
+	 * 절대좌표로 비교
+	 * 
+	 * @param selectionRect
+	 * @param hostEditPart
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public static List apexGetPositionallyCoveredLifelineEditParts(Rectangle selectionRect, AbstractGraphicalEditPart hostEditPart) {
+		
+		hostEditPart.getFigure().translateToAbsolute(selectionRect);
+		
+		List positionallyCoveredLifelineEditParts = new ArrayList();
+
+		// retrieve all the edit parts in the registry
+		Set<Entry<Object, EditPart>> allEditPartEntries = hostEditPart.getViewer().getEditPartRegistry().entrySet();
+		for(Entry<Object, EditPart> epEntry : allEditPartEntries) {
+			EditPart ep = epEntry.getValue();
+
+			if(ep instanceof LifelineEditPart) {
+				Rectangle figureBounds = SequenceUtil.getAbsoluteBounds((LifelineEditPart)ep);
+
+				if(selectionRect.intersects(figureBounds)) {
+					positionallyCoveredLifelineEditParts.add(ep);
+				}
+			}
+
+		}
+/*8
+System.out.println("positionallyCoveredLifelineEditParts : " + positionallyCoveredLifelineEditParts);
+*/
+		return positionallyCoveredLifelineEditParts;
 	}
 }
