@@ -1836,6 +1836,7 @@ public class LifelineEditPart extends NamedElementEditPart {
 			}
 		}
 		/* apex added start */
+		// jiho - Message을 Horizontal로 생성
 		if (request instanceof CreateConnectionViewRequest) {
 			CreateConnectionViewRequest createRequest = (CreateConnectionViewRequest)request;
 			Point sourceLocation = (Point)createRequest.getExtendedData().get(SequenceRequestConstant.SOURCE_LOCATION_DATA);

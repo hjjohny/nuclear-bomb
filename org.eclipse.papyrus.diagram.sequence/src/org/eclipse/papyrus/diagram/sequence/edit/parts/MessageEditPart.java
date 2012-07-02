@@ -24,8 +24,6 @@ import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.gef.EditPart;
 import org.eclipse.gef.EditPolicy;
 import org.eclipse.gef.Request;
-import org.eclipse.gef.requests.BendpointRequest;
-import org.eclipse.gef.requests.CreateConnectionRequest;
 import org.eclipse.gmf.runtime.diagram.ui.editparts.ConnectionNodeEditPart;
 import org.eclipse.gmf.runtime.diagram.ui.editparts.ITreeBranchEditPart;
 import org.eclipse.gmf.runtime.diagram.ui.editpolicies.EditPolicyRoles;
@@ -244,7 +242,7 @@ implements ITreeBranchEditPart {
 		public WrappingLabel getAppliedStereotypeLabel() {
 			return super.getAppliedStereotypeLabel();
 		}
-
+		
 	}
 
 	/**

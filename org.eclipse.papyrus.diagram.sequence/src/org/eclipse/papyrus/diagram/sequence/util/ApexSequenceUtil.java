@@ -20,10 +20,15 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.draw2d.IFigure;
+import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.gef.EditPart;
 import org.eclipse.gef.editparts.AbstractGraphicalEditPart;
+import org.eclipse.gmf.runtime.diagram.ui.editparts.ConnectionEditPart;
+import org.eclipse.papyrus.diagram.sequence.edit.parts.ActionExecutionSpecificationEditPart;
+import org.eclipse.papyrus.diagram.sequence.edit.parts.BehaviorExecutionSpecificationEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.CombinedFragmentEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.InteractionOperandEditPart;
+import org.eclipse.papyrus.diagram.sequence.edit.parts.LifelineEditPart;
 import org.eclipse.uml2.uml.InteractionOperand;
 
 public class ApexSequenceUtil {
@@ -276,5 +281,90 @@ System.out.println("+++++ below List End+++++");
 			}
 		}
 		return aboveEditPart;
+	}
+
+	/**
+	 * Message에 링크된 ExecutionSpec과 Message들을 리스트로 반환
+	 * 
+	 * @param agep
+	 * @param findConnection	Whether to find Message or not 
+	 * @param findExecSpec		Whether to find ExecutionSpec or not 
+	 * @param findFromStart
+	 * @return
+	 */
+	public static List apexGetLinkedEditPartList(AbstractGraphicalEditPart agep, boolean findConnection, boolean findExecSpec, boolean findFromStart) {
+		return apexGetLinkedEditPartList(agep, findConnection, findExecSpec, findFromStart, new ArrayList());
+	}
+	
+	/**
+	 * Message에 링크된 ExecutionSpec과 Message들을 리스트로 반환
+	 * 
+	 * @param agep
+	 * @param findConnection
+	 * @param findExecSpec
+	 * @param findFromStart
+	 * @param list
+	 * @return
+	 */
+	public static List apexGetLinkedEditPartList(AbstractGraphicalEditPart agep, boolean findConnection, boolean findExecSpec, boolean findFromStart, List list) {
+		if (findFromStart) {
+			if (agep instanceof ConnectionEditPart) {
+				ConnectionEditPart cep = (ConnectionEditPart)agep;
+				AbstractGraphicalEditPart srcEditPart = (AbstractGraphicalEditPart)cep.getSource();
+				if ( !(srcEditPart instanceof LifelineEditPart) ) {
+					return apexGetLinkedEditPartList(srcEditPart, findConnection, findExecSpec, findFromStart, list);
+				}
+			}
+			if (agep instanceof ActionExecutionSpecificationEditPart || agep instanceof BehaviorExecutionSpecificationEditPart) {
+				List tgtConnections = agep.getTargetConnections();
+				Iterator iter = tgtConnections.iterator();
+				while (iter.hasNext()) {
+					ConnectionEditPart tgtConnection = (ConnectionEditPart)iter.next();
+					apexGetLinkedEditPartList((ConnectionEditPart)tgtConnection, findConnection, findExecSpec, findFromStart, list);
+					if ( !list.isEmpty() ) {
+						return list;
+					}
+				}
+			}
+		}
+		
+		if (agep instanceof ConnectionEditPart) {
+			ConnectionEditPart cep = (ConnectionEditPart)agep;
+			if (findConnection)
+				list.add(0, cep);
+			AbstractGraphicalEditPart tgtEditPart = (AbstractGraphicalEditPart)cep.getTarget();
+			apexGetLinkedEditPartList(tgtEditPart, findConnection, findExecSpec, false, list);
+		}
+		else if (agep instanceof ActionExecutionSpecificationEditPart || agep instanceof BehaviorExecutionSpecificationEditPart) {
+			if (findExecSpec)
+				list.add(0, agep);
+			List srcConnections = agep.getSourceConnections();
+			Iterator iter = srcConnections.iterator();
+			while (iter.hasNext()) {
+				ConnectionEditPart srcConnection = (ConnectionEditPart)iter.next();
+				apexGetLinkedEditPartList((ConnectionEditPart)srcConnection, findConnection, findExecSpec, false, list);
+			}
+		}
+		else if (agep instanceof LifelineEditPart) {
+			LifelineEditPart lep = (LifelineEditPart)agep;
+			IFigure lLFigure = lep.getFigure();
+			Rectangle origLLBounds = lLFigure.getBounds().getCopy();
+			lLFigure.getParent().translateToAbsolute(origLLBounds);
+			origLLBounds.translate(lLFigure.getParent().getBounds().getLocation());
+			
+			List editParts = apexGetBelowEditPartList(lep);
+			Iterator iter = editParts.iterator();
+			while (iter.hasNext()) {
+				AbstractGraphicalEditPart editPart = (AbstractGraphicalEditPart)iter.next();
+				IFigure figure = editPart.getFigure();
+				Rectangle bounds = figure.getBounds().getCopy();
+				figure.getParent().translateToAbsolute(bounds);
+				if (origLLBounds.contains(bounds)) {
+					apexGetLinkedEditPartList(editPart, findConnection, findExecSpec, false, list);
+				}
+			}
+		}
+		
+		return list;
 	}
 }

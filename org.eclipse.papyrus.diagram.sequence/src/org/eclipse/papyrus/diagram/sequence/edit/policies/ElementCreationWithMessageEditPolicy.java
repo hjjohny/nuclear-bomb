@@ -13,12 +13,9 @@
  *****************************************************************************/
 package org.eclipse.papyrus.diagram.sequence.edit.policies;
 
-import org.eclipse.draw2d.ConnectionAnchor;
-import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.gef.EditPart;
-import org.eclipse.gef.Request;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CompoundCommand;
 import org.eclipse.gef.requests.CreateConnectionRequest;
@@ -30,10 +27,10 @@ import org.eclipse.gmf.runtime.diagram.ui.requests.CreateConnectionViewAndElemen
 import org.eclipse.gmf.runtime.emf.core.util.EObjectAdapter;
 import org.eclipse.gmf.runtime.emf.type.core.IHintedType;
 import org.eclipse.gmf.runtime.notation.View;
-import org.eclipse.papyrus.diagram.sequence.command.ChangeEdgeTargetCommand;
-import org.eclipse.papyrus.diagram.sequence.command.CreateElementAndNodeCommand;
 import org.eclipse.papyrus.diagram.sequence.command.ApexPreserveAnchorsPositionCommand;
 import org.eclipse.papyrus.diagram.sequence.command.ApexSetBoundsForExecutionSpecificationCommand;
+import org.eclipse.papyrus.diagram.sequence.command.ChangeEdgeTargetCommand;
+import org.eclipse.papyrus.diagram.sequence.command.CreateElementAndNodeCommand;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.ActionExecutionSpecificationEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.BehaviorExecutionSpecificationEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.LifelineEditPart;
@@ -173,30 +170,5 @@ public class ElementCreationWithMessageEditPolicy extends LifelineChildGraphical
 	private TransactionalEditingDomain getEditingDomain() {
 		return ((IGraphicalEditPart)getHost()).getEditingDomain();
 	}
-
-	@Override
-	protected ConnectionAnchor getSourceConnectionAnchor(
-			CreateConnectionRequest request) {
-		ConnectionAnchor ca = super.getSourceConnectionAnchor(request);
-		Point ref = ca.getReferencePoint();
-		System.out.println("source: " + ca.getLocation(ref));
-		return ca;
-	}
-
-	@Override
-	protected ConnectionAnchor getTargetConnectionAnchor(
-			CreateConnectionRequest request) {
-		ConnectionAnchor ca = super.getTargetConnectionAnchor(request);
-		Point ref = ca.getReferencePoint();
-		System.out.println("target: " + ca.getLocation(ref));
-		return ca;
-	}
-
-	@Override
-	protected ConnectionAnchor getConnectionTargetAnchor(Request request) {
-		// TODO Auto-generated method stub
-		return super.getConnectionTargetAnchor(request);
-	}
-	
 	
 }

@@ -17,17 +17,11 @@ public class ApexHorizontalAnchor extends SlidableAnchor {
 	public ApexHorizontalAnchor(IFigure figure, PrecisionPoint point) {
 		super(figure, point);
 	}
+	
+	static private int STRAIGHT_LINE_TOLERANCE = 0;
 
 	public Point getLocation(Point reference) {
-		Point ownReference = normalizeToStraightlineTolerance(reference, getReferencePoint(), 0);
-		
-		//*8
-//		for (int i = 5; i > 1; i--) {
-//			StackTraceElement st = Thread.currentThread().getStackTrace()[i];
-//			System.out.println(st.getClassName() + "." + st.getMethodName() + "(" + st.getLineNumber() + ")");
-//		}
-		System.out.println(reference + " // " + getReferencePoint() + " // " + ownReference);
-		//*/
+		Point ownReference = normalizeToStraightlineTolerance(reference, getReferencePoint(), STRAIGHT_LINE_TOLERANCE);
 		
 		Point location = getLocation(ownReference, reference);
 		if (location == null) {
@@ -36,20 +30,11 @@ public class ApexHorizontalAnchor extends SlidableAnchor {
 				location = getBox().getCenter();
 			}
 		}
+		
+		// SEQ-LL-005
+		location.y = reference.y;
+		
 		return location;
-	}
-
-	@Override
-	public Point getReferencePoint() {
-		Point referencePoint = super.getReferencePoint();
-		//*8
-		for (int i = 5; i > 1; i--) {
-			StackTraceElement st = Thread.currentThread().getStackTrace()[i];
-			System.out.println(st.getClassName() + "." + st.getMethodName() + "(" + st.getLineNumber() + ")");
-		}
-		System.out.println("ReferencePoint: " + referencePoint);
-		//*/
-		return referencePoint;
 	}
 
 	protected Rectangle getBox() {
