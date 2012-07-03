@@ -106,12 +106,12 @@ public class ApexResizableShapeEditPolicy extends ResizableShapeEditPolicy {
 	public Command getCommand(Request request) {
 		/* apex improved start */
 		if (RequestConstants.REQ_AUTOSIZE.equals(request.getType()) /*&& autoSizeEnabled*/) {
-//System.out.println("autosize doing");
+
 			return getAutoSizeCommand(request);
 		}
 			
 		if (RequestConstants.REQ_MOVE_DEFERRED.equals(request.getType()) /*&& moveDeferredEnabled*/) {
-//System.out.println("moveDeffered doing");
+
 			return getMoveDeferredCommand((ChangeBoundsDeferredRequest) request);
 		}
 			
@@ -139,7 +139,7 @@ public class ApexResizableShapeEditPolicy extends ResizableShapeEditPolicy {
 		int width = -1;
 		
 		int height = -1;
-//*8		
+
 		if ( getHost() instanceof CombinedFragmentEditPart) {
 			
 			CombinedFragmentEditPart cfep = (CombinedFragmentEditPart)getHost();
@@ -153,10 +153,15 @@ System.out.println("before toAbsolute : " + thisRect);
 System.out.println("after  toAbsolute : " + thisRect);
 //*/
 			int buffer = 30;
+			
 			int thisWidth = thisRect.width;
 			int thisRight = thisRect.right();
-			int thisLeft = thisRect.x;
 			int maxChildRight = thisRight;
+			
+			int thisHeight = thisRect.height;
+			int thisBottom = thisRect.bottom();
+			int maxChildBottom = thisBottom;
+			
 			List<EditPart> childrenList = ApexSequenceUtil.apexGetChildEditPartList(cfep);
 
 			for ( EditPart ep : childrenList) {
@@ -166,9 +171,13 @@ System.out.println("after  toAbsolute : " + thisRect);
 					// 절대좌표로 변환
 					agep.getFigure().getParent().translateToAbsolute(childRect);
 					int childRight = childRect.right();
+					int childBottom = childRect.bottom();
+
 					// 절대값으로 비교
 					if (childRight > maxChildRight)
 						maxChildRight = childRight;						
+					if (childBottom > maxChildBottom)
+						maxChildBottom = childBottom;
 				}
 			}						
 			
@@ -176,31 +185,38 @@ System.out.println("after  toAbsolute : " + thisRect);
 				width = thisWidth + (maxChildRight-thisRight) + buffer;
 			else
 				width = thisWidth;
-		
-			Rectangle newBounds = cfep.getFigure().getBounds().getCopy();
 			
+			if (maxChildBottom > thisBottom)
+				height = thisHeight + (maxChildBottom-thisBottom) + buffer;
+			else
+				height = thisHeight;					
 /*8
 System.out.println("////////////");
 System.out.println("request.getType()      : " + request.getType());
 if ( request instanceof ChangeBoundsRequest)
 	System.out.println("request.sizeDelta  : " + ((ChangeBoundsRequest)request).getSizeDelta());
-System.out.println("thisLeft      : " + thisLeft);
+//*/
+/*8
+System.out.println("ApexResizableShapeEditPolicy.getAutoSizeCommand(), line : "+Thread.currentThread().getStackTrace()[1].getLineNumber());
+
 System.out.println("thisWidth     : " + thisWidth);
 System.out.println("thisRight     : " + thisRight);
 System.out.println("maxChildRight : " + maxChildRight);
 System.out.println("result width  : " + width);
+
+System.out.println("thisHeight    : " + thisHeight);
+System.out.println("thisBottom    : " + thisBottom);
+System.out.println("maxChildBottom: " + maxChildBottom);
+System.out.println("result height : " + height);
 //*/
-			height = newBounds.height;
 		}
 //*/
-
-//		width = ((CombinedFragmentEditPart)getHost()).getFigure().getBounds().width+30;
 		
 		TransactionalEditingDomain editingDomain = ((IGraphicalEditPart) getHost()).getEditingDomain();
 		ICommand resizeCommand = new SetBoundsCommand(editingDomain, 
 			DiagramUIMessages.SetAutoSizeCommand_Label,
 			new EObjectAdapter((View) getHost().getModel()), new Dimension(width, height));
-//System.out.println("in ApexRe~EditPolicy, resizeCommand.canExecute() : " + resizeCommand.canExecute());
+
 		return new ICommandProxy(resizeCommand);
 		/* apex improved end */
 		

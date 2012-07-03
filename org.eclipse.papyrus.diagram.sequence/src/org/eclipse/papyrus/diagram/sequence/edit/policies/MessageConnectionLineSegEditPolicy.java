@@ -96,7 +96,7 @@ public class MessageConnectionLineSegEditPolicy extends ConnectionBendpointEditP
 					Command srcCmd = OccurrenceSpecificationMoveHelper.getMoveOccurrenceSpecificationsCommand((OccurrenceSpecification)send, null, y, -1, srcLifelinePart, empty);
 					Command tgtCmd = OccurrenceSpecificationMoveHelper.getMoveOccurrenceSpecificationsCommand((OccurrenceSpecification)rcv, null, y, -1, tgtLifelinePart, empty);
 					CompoundCommand compoudCmd = new CompoundCommand(Messages.MoveMessageCommand_Label);
-					
+			
 					/* apex added start */
 					// Jiho - Message를 이동하지 않고 ExecutionSpecification을 이동함으로서 Message이동의 효과를 얻는다.
 					if (srcPart instanceof ActionExecutionSpecificationEditPart || srcPart instanceof BehaviorExecutionSpecificationEditPart) {

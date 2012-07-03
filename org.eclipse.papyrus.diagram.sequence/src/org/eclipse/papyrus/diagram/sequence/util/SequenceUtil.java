@@ -959,7 +959,16 @@ public class SequenceUtil {
 					} else {
 						Rectangle intersection = selectionRect.getIntersection(figureBounds);
 						if(!intersection.equals(new Rectangle()) && !intersection.equals(selectionRect)) {
-							return null;
+							/* apex added start */
+							if ( elem instanceof ExecutionSpecification ) {
+								coveredInteractionFragments.add((InteractionFragment)elem);
+								ExecutionSpecification es = (ExecutionSpecification)elem;
+								coveredInteractionFragments.add(es.getStart());
+								coveredInteractionFragments.add(es.getFinish());
+							} else {
+							/* apex added end */
+								return null;
+							}
 						}
 					}
 				}
