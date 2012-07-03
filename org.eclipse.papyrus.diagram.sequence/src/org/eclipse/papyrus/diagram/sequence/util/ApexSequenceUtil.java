@@ -14,26 +14,30 @@
 package org.eclipse.papyrus.diagram.sequence.util;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.eclipse.draw2d.Bendpoint;
+import org.eclipse.draw2d.Connection;
 import org.eclipse.draw2d.IFigure;
+import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.gef.EditPart;
+import org.eclipse.gef.editparts.AbstractConnectionEditPart;
 import org.eclipse.gef.editparts.AbstractGraphicalEditPart;
 import org.eclipse.gmf.runtime.diagram.ui.editparts.ConnectionEditPart;
+import org.eclipse.gmf.runtime.diagram.ui.editparts.INodeEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.ActionExecutionSpecificationEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.BehaviorExecutionSpecificationEditPart;
-import org.eclipse.gmf.runtime.diagram.ui.editparts.ShapeEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.CombinedFragmentEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.InteractionOperandEditPart;
 import org.eclipse.papyrus.diagram.sequence.edit.parts.LifelineEditPart;
+import org.eclipse.swt.SWT;
 import org.eclipse.uml2.uml.InteractionOperand;
-import org.eclipse.uml2.uml.Lifeline;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class ApexSequenceUtil {
 
 	/**
@@ -49,17 +53,22 @@ public class ApexSequenceUtil {
 				
 		List<AbstractGraphicalEditPart> belowEditPartList = new ArrayList<AbstractGraphicalEditPart>();		
 		
-		int yBottomOfAgep = agep.getFigure().getBounds().getBottom().y;
+		int yBottomOfAgep = apexGetAbsolutePosition(agep, SWT.BOTTOM);
+//		int yBottomOfAgep = agep.getFigure().getBounds().getBottom().y;
 		
 		for (Entry<Object, EditPart> aEPEntry : wholeEditPartEntries ) {
 			
 			EditPart editPart = aEPEntry.getValue();
+			if (editPart.equals(agep)) 
+				continue;
+			if (!(editPart instanceof INodeEditPart))
+				continue;
 			if ( editPart instanceof AbstractGraphicalEditPart ) {
 				
 				AbstractGraphicalEditPart agep1 = (AbstractGraphicalEditPart)editPart;
-				IFigure figure = agep1.getFigure();
 				
-				int yTopThisEP = figure.getBounds().getTop().y;
+				int yTopThisEP = apexGetAbsolutePosition(agep1, SWT.TOP);
+//				int yTopThisEP = agep1.getFigure().getBounds().getTop().y;
 
 				if ( yTopThisEP >= yBottomOfAgep) {					
 					belowEditPartList.add(agep1);
@@ -72,7 +81,7 @@ for ( int i = 0 ; i < belowEditPartList.size() ; i++ ) {
 	System.out.println("   ["+i+"] : " + belowEditPartList.get(i));				
 }		
 System.out.println("+++++ below List End+++++");
-//*/
+*/
 
 		return belowEditPartList;
 	}
@@ -87,10 +96,11 @@ System.out.println("+++++ below List End+++++");
 	 */
 	public static AbstractGraphicalEditPart apexGetBeneathEditPart(AbstractGraphicalEditPart agep, List belowEditPartList) {
 
-		int gap = 1000000;
+		int gap = Integer.MAX_VALUE;
 		AbstractGraphicalEditPart beneathEditPart = null;
-		
-		int yCF = agep.getFigure().getBounds().getBottom().y;
+
+		int yCF = apexGetAbsolutePosition(agep, SWT.BOTTOM);
+//		int yCF = agep.getFigure().getBounds().getBottom().y;
 		
 		Iterator it = belowEditPartList.iterator();
 		
@@ -98,7 +108,8 @@ System.out.println("+++++ below List End+++++");
 			
 			AbstractGraphicalEditPart sep = (AbstractGraphicalEditPart)it.next();
 			
-			int yEP = sep.getFigure().getBounds().getTop().y;
+			int yEP = apexGetAbsolutePosition(sep, SWT.TOP);
+//			int yEP = sep.getFigure().getBounds().getTop().y;
 			
 			int thisGap = yEP - yCF;
 			
@@ -235,7 +246,8 @@ System.out.println("+++++ below List End+++++");
 				
 		List<AbstractGraphicalEditPart> higherEditPartList = new ArrayList<AbstractGraphicalEditPart>();		
 		
-		int yTopOfAgep = agep.getFigure().getBounds().getTop().y;
+		int yTopOfAgep = apexGetAbsolutePosition(agep, SWT.TOP);
+//		int yTopOfAgep = agep.getFigure().getBounds().getTop().y;
 		
 		for (Entry<Object, EditPart> aEPEntry : wholeEditPartEntries ) {
 			
@@ -244,9 +256,10 @@ System.out.println("+++++ below List End+++++");
 			if ( editPart instanceof AbstractGraphicalEditPart ) {
 				
 				AbstractGraphicalEditPart agep1 = (AbstractGraphicalEditPart)editPart;
-				IFigure figure = agep1.getFigure();
+//				IFigure figure = agep1.getFigure();
 				
-				int yBottomThisEP = figure.getBounds().getBottom().y;
+				int yBottomThisEP = apexGetAbsolutePosition(agep1, SWT.BOTTOM);
+//				int yBottomThisEP = figure.getBounds().getBottom().y;
 
 				if ( yBottomThisEP <= yTopOfAgep) {					
 					higherEditPartList.add(agep1);
@@ -270,13 +283,15 @@ System.out.println("+++++ below List End+++++");
 		int gap = 1000000;
 		AbstractGraphicalEditPart aboveEditPart = null;
 		
-		int yCF = agep.getFigure().getBounds().getTop().y;
+		int yCF = apexGetAbsolutePosition(agep, SWT.TOP);
+//		int yCF = agep.getFigure().getBounds().getTop().y;
 		
 		Iterator it = higherEditPartList.iterator();
 		
 		while( it.hasNext()) {
 			AbstractGraphicalEditPart sep = (AbstractGraphicalEditPart)it.next();
-			int yEP = sep.getFigure().getBounds().getBottom().y;
+			int yEP = apexGetAbsolutePosition(sep, SWT.BOTTOM);
+//			int yEP = sep.getFigure().getBounds().getBottom().y;
 			int thisGap = yCF - yEP;
 			if ( thisGap < gap ) {
 				gap = thisGap;
@@ -302,7 +317,7 @@ System.out.println("+++++ below List End+++++");
 	/**
 	 * Message에 링크된 ExecutionSpec과 Message들을 리스트로 반환
 	 * 
-	 * @param agep
+	 * @param agep Message or ExecutionSpecification
 	 * @param findConnection
 	 * @param findExecSpec
 	 * @param findFromStart
@@ -353,7 +368,6 @@ System.out.println("+++++ below List End+++++");
 			IFigure lLFigure = lep.getFigure();
 			Rectangle origLLBounds = lLFigure.getBounds().getCopy();
 			lLFigure.getParent().translateToAbsolute(origLLBounds);
-			origLLBounds.translate(lLFigure.getParent().getBounds().getLocation());
 			
 			List editParts = apexGetBelowEditPartList(lep);
 			Iterator iter = editParts.iterator();
@@ -372,6 +386,93 @@ System.out.println("+++++ below List End+++++");
 	}
 
 	/**
+	 * Message에 링크된 EditPart들 중 가장 하위에 있는 EditPart를 반환 (bottom값이 가장 하위)
+	 * 
+	 * @param agep
+	 * @return
+	 */
+	public static AbstractGraphicalEditPart apexGetBottomEditPartInLinked(AbstractGraphicalEditPart agep) {
+		List editPartList = apexGetLinkedEditPartList(agep, true, true, true, new ArrayList());
+		Iterator iter = editPartList.iterator();
+		int bottom = Integer.MIN_VALUE;
+		AbstractGraphicalEditPart bottomEditPart = null;
+		while (iter.hasNext()) {
+			Object next = iter.next();
+			if (next instanceof AbstractGraphicalEditPart) {
+				int b = apexGetAbsolutePosition((AbstractGraphicalEditPart)next, SWT.BOTTOM);
+				if (b > bottom) {
+					bottom = b;
+					bottomEditPart = (AbstractGraphicalEditPart)next;
+				}
+			}
+//			if (next instanceof ConnectionEditPart) {
+//				Connection connection = ((ConnectionEditPart)next).getConnectionFigure();
+//				List bendpoints = (List)connection.getConnectionRouter().getConstraint(connection);
+//				int start = bendpoints.size() > 2 ? 1 : 0;
+//				int end = bendpoints.size() > 3 ? bendpoints.size()-1 : bendpoints.size();
+//				for (int i = start; i < end; i++) {
+//					Bendpoint bp = (Bendpoint) bendpoints.get(i);
+//					if (bp.getLocation().y > bottom) {
+//						bottom = bp.getLocation().y;
+//						bottomEditPart = (ConnectionEditPart)next;
+//					}
+//				}
+//			}
+//			else if (next instanceof ActionExecutionSpecificationEditPart || next instanceof BehaviorExecutionSpecificationEditPart) {
+//				IFigure figure = ((AbstractGraphicalEditPart) next).getFigure();
+//				Rectangle bounds = figure.getBounds().getCopy();
+//				figure.getParent().translateToAbsolute(bounds);
+//				bounds.translate(figure.getParent().getBounds().getLocation());
+//				if (bounds.getBottom().y > bottom) {
+//					bottom = bounds.getBottom().y;
+//					bottomEditPart = (AbstractGraphicalEditPart)next;
+//				}
+//			}
+		}
+		return bottomEditPart;
+	}
+	
+	/**
+	 * EditPart의 Bottom값을 반환. Message인 경우 Bendpoint들 중 가장 하위의 값을 반환
+	 * 
+	 * @param agep
+	 * @param type	one of TOP, BOTTOM
+	 * @return
+	 */
+	private static int apexGetAbsolutePosition(AbstractGraphicalEditPart agep, int type) {
+		if (agep instanceof AbstractConnectionEditPart) {
+			Connection conn = ((AbstractConnectionEditPart)agep).getConnectionFigure();
+//			List bendpoints = (List)conn.getConnectionRouter().getConstraint(conn);
+//			int start = bendpoints.size() > 3 ? 1 : 0;
+//			int end = bendpoints.size() > 2 ? bendpoints.size() - 1 : bendpoints.size();
+//			int pos = type == SWT.TOP ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+//			for (int i = start; i < end; i++) {
+//				Bendpoint bp = (Bendpoint)bendpoints.get(i);
+//				if ((type == SWT.TOP && bp.getLocation().y < pos)
+//						|| (type == SWT.BOTTOM && bp.getLocation().y > pos)) {
+//					pos = bp.getLocation().y;
+//				}
+//			}
+//			return pos;
+			Point point = conn.getTargetAnchor().getReferencePoint();
+			conn.getParent().translateToAbsolute(point);
+			return point.y;
+		}
+		
+		IFigure figure = agep.getFigure();
+		Rectangle bounds = figure.getBounds().getCopy();
+		figure.getParent().translateToAbsolute(bounds);
+		
+		switch (type) {
+		case SWT.TOP:
+			return bounds.getTop().y;
+		case SWT.BOTTOM:
+			return bounds.getBottom().y;
+		}
+		return -1;
+	}
+	
+	/**
 	 * SequenceUtil에 있던 메서드지만 아무도 호출하지 않아
 	 * ApexSequenceUtil 로 가져와서 개조 사용
 	 * Property의 covered 설정과 관계없이
@@ -382,7 +483,6 @@ System.out.println("+++++ below List End+++++");
 	 * @param hostEditPart
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	public static List apexGetPositionallyCoveredLifelineEditParts(Rectangle selectionRect, AbstractGraphicalEditPart hostEditPart) {
 		
 		hostEditPart.getFigure().translateToAbsolute(selectionRect);

@@ -19,6 +19,8 @@ import java.util.List;
 
 import org.eclipse.draw2d.Connection;
 import org.eclipse.draw2d.FigureCanvas;
+import org.eclipse.draw2d.PositionConstants;
+import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.draw2d.geometry.PrecisionPoint;
 import org.eclipse.emf.ecore.EObject;
@@ -27,6 +29,7 @@ import org.eclipse.gef.Request;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CompoundCommand;
 import org.eclipse.gef.commands.UnexecutableCommand;
+import org.eclipse.gef.editparts.AbstractGraphicalEditPart;
 import org.eclipse.gef.requests.BendpointRequest;
 import org.eclipse.gef.requests.ChangeBoundsRequest;
 import org.eclipse.gef.ui.parts.ScrollingGraphicalViewer;
@@ -89,6 +92,7 @@ public class MessageConnectionLineSegEditPolicy extends ConnectionBendpointEditP
 				LifelineEditPart srcLifelinePart = SequenceUtil.getParentLifelinePart(srcPart);
 				EditPart tgtPart = connectionPart.getTarget();
 				LifelineEditPart tgtLifelinePart = SequenceUtil.getParentLifelinePart(tgtPart);
+				
 				if(send instanceof OccurrenceSpecification && rcv instanceof OccurrenceSpecification && srcLifelinePart != null && tgtLifelinePart != null) {
 					int y = request.getLocation().y;
 					List<EditPart> empty = Collections.emptyList();
@@ -96,38 +100,52 @@ public class MessageConnectionLineSegEditPolicy extends ConnectionBendpointEditP
 					Command srcCmd = OccurrenceSpecificationMoveHelper.getMoveOccurrenceSpecificationsCommand((OccurrenceSpecification)send, null, y, -1, srcLifelinePart, empty);
 					Command tgtCmd = OccurrenceSpecificationMoveHelper.getMoveOccurrenceSpecificationsCommand((OccurrenceSpecification)rcv, null, y, -1, tgtLifelinePart, empty);
 					CompoundCommand compoudCmd = new CompoundCommand(Messages.MoveMessageCommand_Label);
-			
+					
 					/* apex added start */
 					// Jiho - Message를 이동하지 않고 ExecutionSpecification을 이동함으로서 Message이동의 효과를 얻는다.
+					Connection connection = connectionPart.getConnectionFigure();
+					Point referencePoint = connection.getTargetAnchor().getReferencePoint();
+					Point delta = new Point(0, 0);
+					delta.y = request.getLocation().y - referencePoint.y;
+					
 					if (srcPart instanceof ActionExecutionSpecificationEditPart || srcPart instanceof BehaviorExecutionSpecificationEditPart) {
+						ChangeBoundsRequest esRequest = new ChangeBoundsRequest(RequestConstants.REQ_RESIZE);
+						esRequest.setResizeDirection(PositionConstants.SOUTH);
+						esRequest.setSizeDelta(new Dimension(delta.x, delta.y));
+						srcCmd = srcPart.getCommand(esRequest);
 					}
 					if (tgtPart instanceof ActionExecutionSpecificationEditPart || tgtPart instanceof BehaviorExecutionSpecificationEditPart) {
-						Connection connection = connectionPart.getConnectionFigure();
-						Point referencePoint = connection.getTargetAnchor().getReferencePoint();
-						Point moveDelta = new Point(0, 0);
-						moveDelta.y = request.getLocation().y - referencePoint.y;
-						
 						List execSpecs = ApexSequenceUtil.apexGetLinkedEditPartList(connectionPart, false, true, false);
 						Iterator iter = execSpecs.iterator();
+						CompoundCommand tgtCompCmd = new CompoundCommand();
 						while (iter.hasNext()) {
 							EditPart execSpec = (EditPart)iter.next();
 							EditPart parentEP = execSpec.getParent(); 
 							if (parentEP instanceof LifelineEditPart) {
 								ChangeBoundsRequest esRequest = new ChangeBoundsRequest(RequestConstants.REQ_MOVE);
 								esRequest.setEditParts(execSpec);
-//								esRequest.setEditParts(tgtPart);
-								esRequest.setMoveDelta(moveDelta);
+								esRequest.setMoveDelta(delta);
 
 								Command moveESCommand = LifelineXYLayoutEditPolicy.getResizeOrMoveChildrenCommand((LifelineEditPart)parentEP, esRequest, true, false, true);
-								compoudCmd.add(moveESCommand);
+								tgtCompCmd.add(moveESCommand);
 							}
 						}
-						return compoudCmd;
+						if ( !tgtCompCmd.isEmpty() ) {
+							tgtCmd = tgtCompCmd;
+						}
 					}
 					
+					// Jiho - Below EditPart들을 모두 이동
+					AbstractGraphicalEditPart bottomEditPart = ApexSequenceUtil.apexGetBottomEditPartInLinked(connectionPart);
+					ChangeBoundsRequest cbRequest = new ChangeBoundsRequest(RequestConstants.REQ_MOVE);
+					cbRequest.setMoveDelta(delta);
+					Command moveBelowCmd = apexGetResizeOrMoveBelowItemsCommand(cbRequest, bottomEditPart);
+					if (moveBelowCmd != null && moveBelowCmd.canExecute()) {
+						compoudCmd.add(moveBelowCmd);
+					}
 					/* apex added end */
 					
-					/*
+					/**
 					 * Take care of the order of commands, to make sure target is always bellow the source.
 					 * Otherwise, moving the target above the source would cause order conflict with existing CF.
 					 */
@@ -148,6 +166,12 @@ public class MessageConnectionLineSegEditPolicy extends ConnectionBendpointEditP
 			}
 		}
 		return UnexecutableCommand.INSTANCE;
+	}
+	
+	private Command apexGetResizeOrMoveBelowItemsCommand(ChangeBoundsRequest request, AbstractGraphicalEditPart abstractGraphicalEditPart) {
+		CompoundCommand command = new CompoundCommand();
+		InteractionCompartmentXYLayoutEditPolicy.apexGetResizeOrMoveBelowItemsCommand(request, abstractGraphicalEditPart, command);
+		return command;
 	}
 
 	/**
