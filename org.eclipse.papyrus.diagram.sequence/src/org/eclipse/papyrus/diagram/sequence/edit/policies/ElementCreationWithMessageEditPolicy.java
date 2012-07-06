@@ -13,6 +13,9 @@
  *****************************************************************************/
 package org.eclipse.papyrus.diagram.sequence.edit.policies;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.gef.EditPart;
@@ -70,13 +73,12 @@ public class ElementCreationWithMessageEditPolicy extends LifelineChildGraphical
 				EditPart sourceEP = viewRequest.getSourceEditPart();
 				EObject source = ViewUtil.resolveSemanticElement((View)sourceEP.getModel());
 
+				/* apex replaced
 				if(getSyncMessageHint().equals(viewRequest.getConnectionViewDescriptor().getSemanticHint())
 						|| getReplyMessageHint().equals(viewRequest.getConnectionViewDescriptor().getSemanticHint())
-						/* apex added start */
-						// jiho - AsyncMessage 생성 시에도 ExecSpec 생성하는 로직 작동 
-						|| apexGetAsyncMessageHint().equals(viewRequest.getConnectionViewDescriptor().getSemanticHint())
-						/* apex added end */
 						) {
+				*/
+				if (apexGetMessageHints().contains(viewRequest.getConnectionViewDescriptor().getSemanticHint())) {
 					if(target instanceof Lifeline ||
 					// handle reflexive synch message by creating a new ES
 					(target instanceof ExecutionSpecification && target.equals(source))) {
@@ -114,26 +116,6 @@ public class ElementCreationWithMessageEditPolicy extends LifelineChildGraphical
 							/* apex added start */
 							// jiho - Source인 ExecSpec의 Bounds, Connection의 Anchor을 자동변경하는 생성
 							if (source instanceof ExecutionSpecification) {
-//								ChangeBoundsRequest changeBoundsRequest = new ChangeBoundsRequest(RequestConstants.REQ_RESIZE);
-//								changeBoundsRequest.setEditParts(sourceEP);
-//								changeBoundsRequest.setLocation(request.getLocation());
-//								changeBoundsRequest.setExtendedData(request.getExtendedData());
-//								changeBoundsRequest.setMoveDelta(new Point(0, 0));
-//								changeBoundsRequest.setResizeDirection(PositionConstants.SOUTH);
-//								
-//								IFigure figure = ((ShapeNodeEditPart)sourceEP).getFigure();
-//								Rectangle bounds = figure.getBounds().getCopy();
-//								figure.getParent().translateToAbsolute(bounds);
-//								Point sourcePoint = (Point)request.getExtendedData().get(SequenceRequestConstant.SOURCE_LOCATION_DATA);
-//								int bottom = Math.max(bounds.bottom(), sourcePoint.y + 60);
-//								Dimension resizeDelta = new Dimension(0, bottom - bounds.bottom());
-//								changeBoundsRequest.setSizeDelta(resizeDelta);
-//								
-//								Command changeBoundsCommand = sourceEP.getCommand(changeBoundsRequest);
-//								if (changeBoundsCommand != null) {
-//									compound.add(changeBoundsCommand);
-//								}
-								
 								View view = (View)sourceEP.getModel();
 								ApexSetBoundsForExecutionSpecificationCommand setBoundsCommand = new ApexSetBoundsForExecutionSpecificationCommand(
 										getEditingDomain(), createExecutionSpecificationCommand, new EObjectAdapter(view));
@@ -162,9 +144,27 @@ public class ElementCreationWithMessageEditPolicy extends LifelineChildGraphical
 		return message.getSemanticHint();
 	}
 
+	/**
+	 * Return Async Message Hint
+	 * @return
+	 */
 	private static String apexGetAsyncMessageHint() {
 		IHintedType message = (IHintedType)UMLElementTypes.Message_4004;
 		return message.getSemanticHint();
+	}
+	
+	private static List<String> apexGetMessageHints() {
+		List<String> hints = new ArrayList<String>();
+		
+		hints.add(((IHintedType)UMLElementTypes.Message_4003).getSemanticHint());
+		hints.add(((IHintedType)UMLElementTypes.Message_4004).getSemanticHint());
+		hints.add(((IHintedType)UMLElementTypes.Message_4005).getSemanticHint());
+		hints.add(((IHintedType)UMLElementTypes.Message_4006).getSemanticHint());
+		hints.add(((IHintedType)UMLElementTypes.Message_4007).getSemanticHint());
+		hints.add(((IHintedType)UMLElementTypes.Message_4008).getSemanticHint());
+		hints.add(((IHintedType)UMLElementTypes.Message_4009).getSemanticHint());
+		
+		return hints;
 	}
 	
 	private TransactionalEditingDomain getEditingDomain() {

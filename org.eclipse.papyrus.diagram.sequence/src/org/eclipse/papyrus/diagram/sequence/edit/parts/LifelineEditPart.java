@@ -49,7 +49,6 @@ import org.eclipse.gef.editpolicies.LayoutEditPolicy;
 import org.eclipse.gef.editpolicies.NonResizableEditPolicy;
 import org.eclipse.gef.requests.CreateConnectionRequest;
 import org.eclipse.gef.requests.CreateRequest;
-import org.eclipse.gef.requests.ReconnectRequest;
 import org.eclipse.gmf.runtime.diagram.ui.editparts.IBorderItemEditPart;
 import org.eclipse.gmf.runtime.diagram.ui.editparts.IGraphicalEditPart;
 import org.eclipse.gmf.runtime.diagram.ui.editparts.ShapeNodeEditPart;
@@ -72,7 +71,6 @@ import org.eclipse.gmf.runtime.notation.View;
 import org.eclipse.gmf.runtime.notation.datatype.GradientData;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
-import org.eclipse.papyrus.diagram.common.draw2d.anchors.LifelineAnchor;
 import org.eclipse.papyrus.diagram.common.editparts.NamedElementEditPart;
 import org.eclipse.papyrus.diagram.common.editpolicies.AppliedStereotypeLabelDisplayEditPolicy;
 import org.eclipse.papyrus.diagram.common.editpolicies.BorderItemResizableEditPolicy;
@@ -1790,18 +1788,24 @@ public class LifelineEditPart extends NamedElementEditPart {
 	}
 
 	/**
+	 * apex updated
+	 * 
 	 * Create specific anchor to handle connection on top, on center and on bottom of the lifeline
 	 */
 	@Override
 	public ConnectionAnchor getTargetConnectionAnchor(ConnectionEditPart connEditPart) {
+		/* apex replace
 		if(connEditPart instanceof Message4EditPart) {
 			// Create message
 			return new LifelineAnchor(getPrimaryShape().getFigureLifelineNameContainerFigure());
 		}
+		*/
 		return super.getTargetConnectionAnchor(connEditPart);
 	}
 
 	/**
+	 * apex updated
+	 * 
 	 * Create specific anchor to handle connection on top, on center and on bottom of the lifeline
 	 */
 	@Override
@@ -1809,16 +1813,18 @@ public class LifelineEditPart extends NamedElementEditPart {
 		if(request instanceof CreateUnspecifiedTypeConnectionRequest) {
 			CreateUnspecifiedTypeConnectionRequest createRequest = (CreateUnspecifiedTypeConnectionRequest)request;
 			List<?> relationshipTypes = createRequest.getElementTypes();
+			/* apex replaced
 			for(Object obj : relationshipTypes) {
 				if(UMLElementTypes.Message_4006.equals(obj)) {
 					// Create Message
 					return new LifelineAnchor(getPrimaryShape().getFigureLifelineNameContainerFigure());
 				}
 			}
+			*/
 			
 			/* apex added start */
 			// jiho - 복수 ElementType에 대한 처리
-			for (Object elementType : createRequest.getElementTypes()) {
+			for (Object elementType : relationshipTypes) {
 				Request createConnectionRequest = createRequest.getRequestForType((IElementType)elementType);
 				if (createConnectionRequest instanceof CreateConnectionViewRequest) {
 					ConnectionAnchor targetAnchor = getTargetConnectionAnchor(createConnectionRequest);
@@ -1827,7 +1833,9 @@ public class LifelineEditPart extends NamedElementEditPart {
 				}
 			}
 			/* apex added end */
-		} else if(request instanceof ReconnectRequest) {
+		}
+		/* apex replaced
+		else if(request instanceof ReconnectRequest) {
 			ReconnectRequest reconnectRequest = (ReconnectRequest)request;
 			ConnectionEditPart connectionEditPart = reconnectRequest.getConnectionEditPart();
 			if(connectionEditPart instanceof Message4EditPart) {
@@ -1835,6 +1843,7 @@ public class LifelineEditPart extends NamedElementEditPart {
 				return new LifelineAnchor(getPrimaryShape().getFigureLifelineNameContainerFigure());
 			}
 		}
+		*/
 		/* apex added start */
 		// jiho - Message을 Horizontal로 생성
 		if (request instanceof CreateConnectionViewRequest) {
