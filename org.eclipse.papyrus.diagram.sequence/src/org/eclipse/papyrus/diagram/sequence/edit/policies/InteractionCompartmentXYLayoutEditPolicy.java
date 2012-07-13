@@ -72,6 +72,7 @@ import org.eclipse.papyrus.diagram.sequence.providers.UMLElementTypes;
 import org.eclipse.papyrus.diagram.sequence.util.ApexSequenceUtil;
 import org.eclipse.papyrus.diagram.sequence.util.SequenceUtil;
 import org.eclipse.papyrus.ui.toolbox.notification.builders.NotificationBuilder;
+import org.eclipse.swt.SWT;
 import org.eclipse.uml2.uml.CombinedFragment;
 import org.eclipse.uml2.uml.ExecutionSpecification;
 import org.eclipse.uml2.uml.Interaction;
@@ -603,12 +604,13 @@ System.out.println("cep.getTarget() instanceof LifelineEditPart  : " + (cep.getT
 				
 				if ( higherEditPartList.size() > 0 ) {
 				
-					int yAfterMove = cfFigure.getBounds().getTop().y+moveDelta.y;
-					AbstractGraphicalEditPart aboveEditPart  = ApexSequenceUtil.apexGetAboveEditPart(combinedFragmentEditPart, higherEditPartList);
 					
+					int yAfterMove = ApexSequenceUtil.apexGetAbsolutePosition(combinedFragmentEditPart, SWT.TOP)+moveDelta.y;
+					AbstractGraphicalEditPart aboveEditPart  = ApexSequenceUtil.apexGetAboveEditPart(combinedFragmentEditPart, higherEditPartList);
+					int yAbove = ApexSequenceUtil.apexGetAbsolutePosition(aboveEditPart, SWT.BOTTOM);
 					// aboveEditPart보다 위로 올릴 경우
-					if ( yAfterMove < aboveEditPart.getFigure().getBounds().getBottom().y ) {
-						// 못 옮기게 함
+					
+					if ( yAfterMove < yAbove ) {
 						return UnexecutableCommand.INSTANCE;
 					}
 					

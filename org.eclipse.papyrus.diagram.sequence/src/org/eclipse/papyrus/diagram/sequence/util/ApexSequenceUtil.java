@@ -439,7 +439,7 @@ System.out.println("+++++ below List End+++++");
 	 * @param type	one of TOP, BOTTOM
 	 * @return
 	 */
-	private static int apexGetAbsolutePosition(AbstractGraphicalEditPart agep, int type) {
+	public static int apexGetAbsolutePosition(AbstractGraphicalEditPart agep, int type) {
 		if (agep instanceof AbstractConnectionEditPart) {
 			Connection conn = ((AbstractConnectionEditPart)agep).getConnectionFigure();
 //			List bendpoints = (List)conn.getConnectionRouter().getConstraint(conn);
