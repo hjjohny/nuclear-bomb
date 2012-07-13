@@ -43,6 +43,7 @@ import org.eclipse.gmf.runtime.common.core.command.ICommand;
 import org.eclipse.gmf.runtime.diagram.ui.commands.ICommandProxy;
 import org.eclipse.gmf.runtime.diagram.ui.commands.SetBoundsCommand;
 import org.eclipse.gmf.runtime.diagram.ui.editparts.ConnectionEditPart;
+import org.eclipse.gmf.runtime.diagram.ui.editparts.IGraphicalEditPart;
 import org.eclipse.gmf.runtime.diagram.ui.editparts.ShapeEditPart;
 import org.eclipse.gmf.runtime.diagram.ui.editparts.ShapeNodeEditPart;
 import org.eclipse.gmf.runtime.diagram.ui.editpolicies.XYLayoutEditPolicy;
@@ -83,6 +84,10 @@ import org.eclipse.uml2.uml.InteractionOperand;
  */
 public class InteractionCompartmentXYLayoutEditPolicy extends XYLayoutEditPolicy {
 
+	/* apex added start */
+	private static final int VERTICAL_MARGIN = 10;
+	/* apex added end */
+	
 	/**
 	 * Handle lifeline and combined fragment resize
 	 */
@@ -177,7 +182,7 @@ public class InteractionCompartmentXYLayoutEditPolicy extends XYLayoutEditPolicy
 	 * @param request
 	 * @return 
 	 */
-	public static void apexGetResizeOrMoveBelowItemsCommand(ChangeBoundsRequest request, AbstractGraphicalEditPart abstractGraphicalEditPart, CompoundCommand compoundCmd) {
+	public static void apexGetResizeOrMoveBelowItemsCommand(ChangeBoundsRequest request, org.eclipse.gmf.runtime.diagram.ui.editparts.GraphicalEditPart abstractGraphicalEditPart, CompoundCommand compoundCmd) {
 		// Root 아래의 모든 EP 나열
 		/*8
 		System.out.println("###### Children List Start #####");
@@ -194,9 +199,9 @@ System.out.println("###### Translate End #####");
 */
 		// 넘겨받은 AbstractGraphicalEditPart 보다 아래에 있는 belowList 구성		
 		List belowEditPartList = ApexSequenceUtil.apexGetBelowEditPartList(abstractGraphicalEditPart);
-		
+
 //		CompoundCommand compoundCmd = new CompoundCommand();
-		
+
 		if ( belowEditPartList.size() > 0 ) {
 			// 이동할 위치
 			Point moveDelta = request.getMoveDelta();		
@@ -213,18 +218,18 @@ System.out.println("before translateToAbsolute Bounds : " + origCFBounds);
 /*8
 System.out.println("after translateToAbsolute Bounds  : " + origCFBounds);
 */
-			
+
 			origCFBounds.translate(thisFigure.getParent().getBounds().getLocation());
 /*8
 System.out.println("after translate Bounds            : " + origCFBounds);
 System.out.println("==========================================");
 */
-			
+
 			// 넘겨받은 AbstractGraphicalEditPart 의 이동 후 위치
 			int yAfterMove = origCFBounds.getBottom().y+moveDelta.y;
 
 			// 넘겨받은 AbstractGraphicalEditPart 바로 아래의 EditPart 구성
-			AbstractGraphicalEditPart beneathEditPart  = ApexSequenceUtil.apexGetBeneathEditPart(abstractGraphicalEditPart, belowEditPartList);
+			IGraphicalEditPart beneathEditPart  = ApexSequenceUtil.apexGetBeneathEditPart(abstractGraphicalEditPart, belowEditPartList);
 
 			IFigure beneathFigure = beneathEditPart.getFigure();
 			Rectangle beneathBounds = beneathFigure.getBounds().getCopy();
@@ -232,20 +237,20 @@ System.out.println("==========================================");
 			beneathFigure.getParent().translateToAbsolute(beneathBounds);
 
 			int topOfBeneathEditPart = beneathBounds.getTop().y;
-			
+
 			// beneathEditPart 보다 아래로 내릴 경우			
 			if (yAfterMove >= topOfBeneathEditPart) {
 
 				Iterator it = belowEditPartList.iterator();
 				while( it.hasNext()) {		
-					
+
 					EditPart ep = (EditPart)it.next();
 /*8
 System.out.println("### in omw below list start ###");
 System.out.println("   " + ep.getClass().getSimpleName());
 System.out.println("### in omw below list end ###");
 */
-					
+
 					// handle move of object graphically owned by the lifeline
 					if(ep instanceof ShapeEditPart) {
 						ShapeEditPart sep = (ShapeEditPart)ep;
@@ -256,7 +261,7 @@ System.out.println("### in omw below list end ###");
 
 							Rectangle figureBounds = figure.getBounds().getCopy();
 							figure.getParent().translateToAbsolute(figureBounds);
-							
+
 							EditPart parentEP = sep.getParent();
 
 							if(parentEP instanceof LifelineEditPart) {
@@ -282,7 +287,7 @@ System.out.println("### in omw below list end ###");
 								// Convert to relative
 								newBounds.x += moveDelta.x;
 								newBounds.y += moveDelta.y;
-								
+
 								SetBoundsCommand setBoundsCmd = new SetBoundsCommand(sep.getEditingDomain(), "Move of a CombinedFragment due to a Upper CF movement", sep, newBounds);
 								compoundCmd.add(new ICommandProxy(setBoundsCmd));						
 							}
@@ -297,7 +302,7 @@ System.out.println("### in omw below list end ###");
 
 					// 위 4행의 주석은 원래 Papyrus에 해당하고
 					// 수정된 papyrus는 message 가 별도로 움직임
-					
+
 					if(ep instanceof ConnectionEditPart) {
 /*8
 System.out.println("??? in omw right after ConnectionEditPart ???");
@@ -361,6 +366,194 @@ System.out.println("??? in omw right after LifelineEditPart target after Connect
 				}
 			}
 		}
+//		// Root 아래의 모든 EP 나열
+//		/*8
+//		System.out.println("###### Children List Start #####");
+//		SequenceUtil.omwShowChildrenEditPart(abstractGraphicalEditPart.getRoot(), 0);
+//		System.out.println("###### Children List End #####");
+//		*/
+///*8
+//System.out.println("###### Translate Start #####");
+//Rectangle r1 = new Rectangle(300, 100, 500, 200);
+//System.out.println("  before translate(30, 10) : " + r1);
+//r1.translate(30, 10);
+//System.out.println("   after translate(30, 10) : " + r1);
+//System.out.println("###### Translate End #####");
+//*/
+//		// 넘겨받은 AbstractGraphicalEditPart 보다 아래에 있는 belowList 구성		
+//		List belowEditPartList = ApexSequenceUtil.apexGetBelowEditPartList(abstractGraphicalEditPart);
+//		
+//		if ( belowEditPartList.size() > 0 ) {
+//			// 이동할 위치
+//			Point moveDelta = request.getMoveDelta();		
+//
+//			// 넘겨받은 AbstractGraphicalEditPart 의 이동 후 위치
+//			int yBeforeMove = ApexSequenceUtil.apexGetAbsolutePosition(abstractGraphicalEditPart, SWT.BOTTOM);
+//			int yAfterMove = yBeforeMove + moveDelta.y;
+//
+//			// 넘겨받은 AbstractGraphicalEditPart 바로 아래의 EditPart 구성
+//			/* apex improved start */
+//			AbstractGraphicalEditPart beneathEditPart = (AbstractGraphicalEditPart)belowEditPartList.get(0);
+//			/* apex improved end*/
+//			/* apex replaced 
+//			AbstractGraphicalEditPart beneathEditPart = ApexSequenceUtil.apexGetBeneathEditPart(abstractGraphicalEditPart, belowEditPartList);
+//			*/
+//			
+//			int topOfBeneathEditPart = ApexSequenceUtil.apexGetAbsolutePosition(beneathEditPart, SWT.TOP);
+//			
+//			// beneathEditPart 보다 아래로 내릴 경우			
+//			if (yAfterMove >= topOfBeneathEditPart) {
+//				int pushDeltaY = topOfBeneathEditPart - yBeforeMove - VERTICAL_MARGIN;
+//				
+////				while( it.hasNext())		
+//				{
+////					EditPart ep = (EditPart)it.next();
+//					
+//					AbstractGraphicalEditPart ep = beneathEditPart;
+//					moveDelta = moveDelta.getCopy();
+//					moveDelta.setY(moveDelta.y() - pushDeltaY);
+///*8
+//System.out.println("### in omw below list start ###");
+//System.out.println("   " + ep.getClass().getSimpleName());
+//System.out.println("### in omw below list end ###");
+//*/
+//					// handle move of object graphically owned by the lifeline
+//					if(ep instanceof ShapeEditPart) {
+//						ShapeEditPart sep = (ShapeEditPart)ep;
+//						EObject elem = sep.getNotationView().getElement();
+//
+//						if(elem instanceof InteractionFragment) {
+//							IFigure figure = sep.getFigure();
+//
+//							Rectangle figureBounds = figure.getBounds().getCopy();
+//							figure.getParent().translateToAbsolute(figureBounds);
+//							
+//							EditPart parentEP = sep.getParent();
+//
+//							if(parentEP instanceof LifelineEditPart) {
+//								ChangeBoundsRequest esRequest = new ChangeBoundsRequest(RequestConstants.REQ_MOVE);
+//								esRequest.setEditParts(sep);
+//								esRequest.setMoveDelta(moveDelta);
+//
+//								Command moveESCommand = LifelineXYLayoutEditPolicy.getResizeOrMoveChildrenCommand((LifelineEditPart)parentEP, esRequest, true, false, true);
+//
+//								if(moveESCommand != null && !moveESCommand.canExecute()) {
+//									// forbid move if the es can't be moved correctly
+//									compoundCmd.add(UnexecutableCommand.INSTANCE);
+//								} else if(moveESCommand != null) {
+//									compoundCmd.add(moveESCommand);
+//								}
+//							}
+//							/* apex added start */
+//							// below에 다른 CombinedFragment 가 있을 경우 같이 이동
+//							if(sep instanceof CombinedFragmentEditPart) {
+//								// The new bounds will be calculated from the current bounds
+//								Rectangle newBounds = sep.getFigure().getBounds().getCopy();
+//
+//								// Convert to relative
+//								newBounds.x += moveDelta.x;
+//								newBounds.y += moveDelta.y;
+//								
+//								SetBoundsCommand setBoundsCmd = new SetBoundsCommand(sep.getEditingDomain(), "Move of a CombinedFragment due to a Upper CF movement", sep, newBounds);
+//								compoundCmd.add(new ICommandProxy(setBoundsCmd));
+//								
+//								/* apex added start */
+//								// jiho
+//								ChangeBoundsRequest esRequest = new ChangeBoundsRequest(RequestConstants.REQ_MOVE);
+//								esRequest.setEditParts(sep);
+//								esRequest.setMoveDelta(moveDelta);
+//								compoundCmd.add(getCombinedFragmentResizeChildrenCommand(esRequest, sep));
+//								/* apex added end */
+//							}
+//							/* apex added end */
+//						}
+//					}
+//
+//					// handle move of messages directly attached to a lifeline
+//					// 보통 메세지가 아니라 Lifeline에 직접붙은 메세지. 즉, async 등의 경우 처리
+//					// sync의 경우 아래의 로직에 의해 이동되는게 아니라
+//					// 딸린 ExecSpec이 위의 로직에 의해 이동되기 때문에 ExecSpec따라 이동
+//
+//					// 위 4행의 주석은 원래 Papyrus에 해당하고
+//					// 수정된 papyrus는 message 가 별도로 움직임
+//					
+//					if(ep instanceof ConnectionEditPart) {
+///*8
+//System.out.println("??? in omw right after ConnectionEditPart ???");
+//*/
+//						ConnectionEditPart cep = (ConnectionEditPart)ep;
+//						Connection msgFigure = cep.getConnectionFigure();
+//
+//						ConnectionAnchor sourceAnchor = msgFigure.getSourceAnchor();
+//						ConnectionAnchor targetAnchor = msgFigure.getTargetAnchor();
+//
+//						Point sourcePoint = sourceAnchor.getReferencePoint();
+//						Point targetPoint = targetAnchor.getReferencePoint();
+//
+//						Edge edge = (Edge)cep.getModel();
+///*8
+//System.out.println("is Async? " + cep.getClass().getSimpleName());
+//System.out.println("Parent of Async : " + cep.getParent().getClass().getSimpleName());
+//System.out.println("Source of Async : " + cep.getSource().getClass().getSimpleName());
+//System.out.println("Target of Async : " + cep.getTarget().getClass().getSimpleName());
+//System.out.println("SourcePoint of Async : " + sourcePoint);
+//System.out.println("TargetPoint of Async : " + targetPoint);
+//System.out.println("Bounds before translate : " + thisFigure.getBounds().getCopy());
+//System.out.println("Bounds after translate : " + origCFBounds);
+//System.out.println("is Async Source contained: " + origCFBounds.contains(sourcePoint));
+//System.out.println("is Async Target contained: " + origCFBounds.contains(targetPoint));
+//*/
+//
+//						/* apex improved start */
+//						if(cep.getSource() instanceof LifelineEditPart) {
+///*8
+//System.out.println("??? in omw right after LifelineEditPart source after ConnectionEditPart ???");
+//*/
+//							IdentityAnchor gmfAnchor = (IdentityAnchor)edge.getSourceAnchor();
+//							Rectangle figureBounds = sourceAnchor.getOwner().getBounds();
+//							compoundCmd.add(new ICommandProxy(getMoveAnchorCommand(moveDelta.y, figureBounds, gmfAnchor)));
+//						}
+//						if(cep.getTarget() instanceof LifelineEditPart) {
+///*8
+//System.out.println("??? in omw right after LifelineEditPart target after ConnectionEditPart ???");
+//*/
+//							IdentityAnchor gmfAnchor = (IdentityAnchor)edge.getTargetAnchor();
+//							Rectangle figureBounds = targetAnchor.getOwner().getBounds();
+//							compoundCmd.add(new ICommandProxy(getMoveAnchorCommand(moveDelta.y, figureBounds, gmfAnchor)));
+//						}
+//						/* apex improved end */
+///* apex replaced
+//						if(origCFBounds.contains(sourcePoint) && cep.getSource() instanceof LifelineEditPart) {
+//System.out.println("??? in omw right after LifelineEditPart source after ConnectionEditPart ???");
+//							IdentityAnchor gmfAnchor = (IdentityAnchor)edge.getSourceAnchor();
+//							Rectangle figureBounds = sourceAnchor.getOwner().getBounds();
+//							compoundCmd.add(new ICommandProxy(getMoveAnchorCommand(moveDelta.y, figureBounds, gmfAnchor)));
+//						}
+//						if(origCFBounds.contains(targetPoint) && cep.getTarget() instanceof LifelineEditPart) {
+//System.out.println("??? in omw right after LifelineEditPart target after ConnectionEditPart ???");
+//							IdentityAnchor gmfAnchor = (IdentityAnchor)edge.getTargetAnchor();
+//							Rectangle figureBounds = targetAnchor.getOwner().getBounds();
+//							compoundCmd.add(new ICommandProxy(getMoveAnchorCommand(moveDelta.y, figureBounds, gmfAnchor)));
+//						}
+//*/
+//						
+//						/* apex added start */
+//						//jiho
+//						ChangeBoundsRequest cbRequest = new ChangeBoundsRequest(RequestConstants.REQ_MOVE);
+//						cbRequest.setMoveDelta(moveDelta);
+////						compoundCmd.add(MessageConnectionLineSegEditPolicy.apexGetResizeOrMoveTargetsCommand(cbRequest, ep));
+//						ep = ApexSequenceUtil.apexGetBottomEditPartInLinked(ep);
+//						/* apex added end */
+//					}
+//					
+//					/* apex added start */
+//					ChangeBoundsRequest newRequest = new ChangeBoundsRequest(RequestConstants.REQ_MOVE);
+//					newRequest.setMoveDelta(moveDelta);
+//					apexGetResizeOrMoveBelowItemsCommand(newRequest, ep, compoundCmd);
+//					/* apex added end */
+//				}
+//			}
+//		}
 	}
 
 	
@@ -604,7 +797,7 @@ System.out.println("cep.getTarget() instanceof LifelineEditPart  : " + (cep.getT
 				if ( higherEditPartList.size() > 0 ) {
 				
 					int yAfterMove = cfFigure.getBounds().getTop().y+moveDelta.y;
-					AbstractGraphicalEditPart aboveEditPart  = ApexSequenceUtil.apexGetAboveEditPart(combinedFragmentEditPart, higherEditPartList);
+					IGraphicalEditPart aboveEditPart  = ApexSequenceUtil.apexGetAboveEditPart(combinedFragmentEditPart, higherEditPartList);
 					
 					// aboveEditPart보다 위로 올릴 경우
 					if ( yAfterMove < aboveEditPart.getFigure().getBounds().getBottom().y ) {
